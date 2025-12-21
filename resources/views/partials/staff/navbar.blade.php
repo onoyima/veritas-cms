@@ -1,5 +1,10 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4">
+<nav class="navbar navbar-expand-lg navbar-light sticky-top glass-header border-bottom shadow-sm px-4">
     <div class="container-fluid p-0">
+        <!-- Sidebar Toggle (Mobile) -->
+        <button class="btn btn-link text-dark d-lg-none me-3" id="sidebarToggle">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
         <!-- Mobile Toggle (if needed) -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

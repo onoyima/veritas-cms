@@ -19,11 +19,18 @@ class StaffDashboardController extends Controller
         ]);
 
         $stats = [];
-        if ($staff->role == 1 || $staff->hasWebsiteRole('super-admin')) {
+        $isSuperAdmin = $staff->role == 1 || $staff->hasWebsiteRole('super-admin');
+        $isEditor = $staff->hasWebsiteRole('editor');
+
+        if ($isSuperAdmin) {
             $stats = [
                 'pages' => Page::count(),
                 'staff_count' => Staff::count(),
                 'students' => Student::count(),
+            ];
+        } elseif ($isEditor) {
+            $stats = [
+                'pages' => Page::count(),
             ];
         }
 

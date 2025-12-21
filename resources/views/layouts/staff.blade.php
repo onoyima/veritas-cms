@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Veritas University') }} - Staff Portal</title>
+    <title>{{ config('app.name', 'Veritas University CMS') }} - Staff Portal</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -24,19 +24,78 @@
         .sidebar-gradient {
             background: radial-gradient(circle at center, #114629 0%, #092c19 100%);
         }
+        
+        /* Layout Styles */
+        #sidebar-wrapper {
+            min-height: 100vh;
+            width: 280px;
+            margin-left: 0;
+            transition: margin .25s ease-out;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1040;
+            overflow-y: auto;
+        }
+        
+        #page-content-wrapper {
+            margin-left: 280px;
+            transition: margin .25s ease-out;
+            width: calc(100% - 280px);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Glassmorphism Navbar */
+        .glass-header {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            #sidebar-wrapper {
+                margin-left: -280px;
+            }
+            #page-content-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+            #wrapper.toggled #sidebar-wrapper {
+                margin-left: 0;
+            }
+            
+            /* Overlay when sidebar is active on mobile */
+            #wrapper.toggled #page-content-wrapper::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1030;
+                cursor: pointer;
+            }
+        }
     </style>
 </head>
 <body class="bg-light">
-    <div class="d-flex min-vh-100">
+    <div class="d-flex" id="wrapper">
         <!-- Sidebar -->
-        @include('partials.staff.sidebar')
+        <div id="sidebar-wrapper">
+            @include('partials.staff.sidebar')
+        </div>
 
-        <div class="flex-grow-1 d-flex flex-column min-vh-100 overflow-hidden">
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
             <!-- Navbar -->
             @include('partials.staff.navbar')
 
             <!-- Main Content -->
-            <main class="flex-grow-1 overflow-auto bg-light p-4">
+            <main class="flex-grow-1 p-4">
                 @yield('content')
             </main>
         </div>
@@ -44,5 +103,33 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Sidebar Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.getElementById('sidebarToggle');
+            const wrapper = document.getElementById('wrapper');
+            
+            if(toggleButton) {
+                toggleButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    wrapper.classList.toggle('toggled');
+                });
+            }
+
+            // Close sidebar when clicking overlay (pseudo-element click handling via document)
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth < 992 && wrapper.classList.contains('toggled')) {
+                    // Check if click is outside sidebar and toggle button
+                    const sidebar = document.getElementById('sidebar-wrapper');
+                    const toggle = document.getElementById('sidebarToggle');
+                    
+                    if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                        wrapper.classList.remove('toggled');
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>

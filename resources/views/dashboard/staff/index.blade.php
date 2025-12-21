@@ -33,8 +33,8 @@
             </div>
         </div>
 
-        @if($staff->role == 1 || $staff->hasWebsiteRole('super-admin'))
-        <!-- Admin Widgets -->
+        @if($staff->role == 1 || $staff->hasWebsiteRole('super-admin') || $staff->hasWebsiteRole('editor'))
+        <!-- CMS Pages Widget -->
         <div class="col-md-3">
             <div class="card border-0 shadow-sm h-100 bg-dark text-white">
                 <div class="card-body text-center">
@@ -46,6 +46,10 @@
                 </div>
             </div>
         </div>
+        @endif
+
+        @if($staff->role == 1 || $staff->hasWebsiteRole('super-admin'))
+        <!-- Admin Widgets -->
         <div class="col-md-3">
             <div class="card border-0 shadow-sm h-100 bg-info text-white">
                 <div class="card-body text-center">
