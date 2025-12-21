@@ -4,7 +4,6 @@ use App\Http\Controllers\Auth\StaffLoginController;
 use App\Http\Controllers\Auth\StudentLoginController;
 use App\Http\Controllers\Dashboard\StaffDashboardController;
 use App\Http\Controllers\Dashboard\StudentDashboardController;
-use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Dashboard\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,8 +15,9 @@ use App\Http\Controllers\Dashboard\ContentBlockController;
 
 // Admin / CMS Routes (Protected by Staff Auth & CMS Access)
 Route::middleware(['auth:staff', 'cms.auth'])->prefix('admin')->name('admin.')->group(function () {
-    // Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); // Removed in favor of unified Staff Dashboard
+    Route::patch('pages/{page}/toggle-status', [PageController::class, 'toggleStatus'])->name('pages.toggle-status');
     Route::resource('pages', PageController::class);
+    Route::patch('blocks/{block}/toggle-status', [ContentBlockController::class, 'toggleStatus'])->name('blocks.toggle-status');
     Route::resource('pages.blocks', ContentBlockController::class)->shallow();
 });
 

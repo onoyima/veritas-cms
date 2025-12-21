@@ -7,6 +7,8 @@ use App\Models\ContentBlock;
 use App\Models\Page;
 use Illuminate\Http\Request;
 
+use App\Enums\ActiveStatus;
+
 class ContentBlockController extends Controller
 {
     /**
@@ -35,30 +37,36 @@ class ContentBlockController extends Controller
             'type' => 'required|string',
             'identifier' => 'nullable|string',
             'order' => 'integer',
-            'content' => 'nullable|json', // We expect a JSON string from the form
+            'content' => 'nullable', // Allow string (JSON) or array
             'is_active' => 'boolean',
+            'images.*' => 'image|max:2048', // Handle image uploads
         ]);
 
-        $validated['page_id'] = $page->id;
-        $validated['is_active'] = $request->has('is_active');
-        
-        // Decode JSON content to array before saving, as model casts it
-        if (!empty($validated['content'])) {
-            $validated['content'] = json_decode($validated['content'], true);
+        $content = $validated['content'] ?? [];
+
+        // If content is a JSON string (from Create form), decode it
+        if (is_string($content)) {
+            $content = json_decode($content, true) ?? [];
         }
+
+        // Handle Image Uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $key => $file) {
+                $path = $file->store('uploads/blocks', 'public');
+                $content[$key] = '/storage/' . $path;
+            }
+        }
+
+        $validated['content'] = $content;
+        $validated['page_id'] = $page->id;
+        $validated['is_active'] = $request->has('is_active') ? ActiveStatus::ACTIVE : ActiveStatus::INACTIVE;
 
         ContentBlock::create($validated);
 
         return redirect()->route('admin.pages.blocks.index', $page->id)->with('success', 'Block added successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+    // ... show ...
 
     /**
      * Show the form for editing the specified resource.
@@ -77,18 +85,59 @@ class ContentBlockController extends Controller
             'type' => 'required|string',
             'identifier' => 'nullable|string',
             'order' => 'integer',
-            'content' => 'nullable|json',
+            'content' => 'nullable|array',
+            'content_json' => 'nullable|string', // Raw JSON fallback
+            'use_json' => 'nullable|boolean',
+            'images.*' => 'image|max:2048',
         ]);
 
-        $validated['is_active'] = $request->has('is_active');
+        $currentContent = $block->content ?? [];
 
-        if (!empty($validated['content'])) {
-            $validated['content'] = json_decode($validated['content'], true);
+        // Determine new content source
+        if ($request->input('use_json') && !empty($validated['content_json'])) {
+            $newContent = json_decode($validated['content_json'], true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return back()->withErrors(['content_json' => 'Invalid JSON format.']);
+            }
+        } else {
+            $newContent = $validated['content'] ?? [];
+
+            // Handle Image Uploads (Only relevant if NOT using raw JSON override)
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $key => $file) {
+                    $path = $file->store('uploads/blocks', 'public');
+                    $newContent[$key] = '/storage/' . $path;
+                }
+            }
+
+            // Merge with existing content to preserve keys not in form if any
+            $newContent = array_merge($currentContent, $newContent);
         }
 
-        $block->update($validated);
+        $finalContent = $newContent;
+
+        // Update other fields
+        $block->type = $validated['type'];
+        $block->identifier = $validated['identifier'];
+        $block->order = $validated['order'];
+        $block->content = $finalContent;
+        $block->is_active = $request->has('is_active') ? ActiveStatus::ACTIVE : ActiveStatus::INACTIVE;
+
+        $block->save();
 
         return redirect()->route('admin.pages.blocks.index', $block->page_id)->with('success', 'Block updated successfully.');
+    }
+
+    /**
+     * Toggle the status of the specified resource.
+     */
+    public function toggleStatus(ContentBlock $block)
+    {
+        $block->update([
+            'is_active' => $block->is_active === ActiveStatus::ACTIVE ? ActiveStatus::INACTIVE : ActiveStatus::ACTIVE
+        ]);
+
+        return back()->with('success', 'Block status updated.');
     }
 
     /**

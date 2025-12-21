@@ -4,7 +4,7 @@
             <p class="mb-0 text-muted small">&copy; {{ date('Y') }} {{ config('app.name', 'Veritas University') }}. All rights reserved.</p>
         </div>
         <div class="col-md-6 text-center text-md-end">
-            <p class="mb-0 text-muted small">CMS Version 1.0</p>
+            <p class="mb-0 text-muted small">Veritas CMS Version 1.0</p>
         </div>
     </div>
 </footer>

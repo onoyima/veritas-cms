@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\ActiveStatus;
 
 class ContentBlock extends Model
 {
@@ -22,7 +23,7 @@ class ContentBlock extends Model
 
     protected $casts = [
         'content' => 'array',
-        'is_active' => 'boolean',
+        'is_active' => ActiveStatus::class,
     ];
 
     public function page()

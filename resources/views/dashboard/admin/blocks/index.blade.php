@@ -33,8 +33,10 @@
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <span class="badge bg-primary">{{ strtoupper($block->type) }}</span>
                             <h5 class="card-title mb-0">{{ $block->identifier ?? 'No Identifier' }}</h5>
-                            @if(!$block->is_active)
+                            @if($block->is_active === \App\Enums\ActiveStatus::INACTIVE)
                                 <span class="badge bg-danger">Inactive</span>
+                            @else
+                                <span class="badge bg-success">Active</span>
                             @endif
                         </div>
                         <div class="text-muted small font-monospace bg-light p-2 rounded border d-inline-block">
@@ -42,6 +44,13 @@
                         </div>
                     </div>
                     <div class="d-flex gap-2">
+                        <form action="{{ route('admin.blocks.toggle-status', $block->id) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="btn btn-sm {{ $block->is_active === \App\Enums\ActiveStatus::ACTIVE ? 'btn-outline-warning' : 'btn-outline-success' }}" title="{{ $block->is_active === \App\Enums\ActiveStatus::ACTIVE ? 'Deactivate' : 'Activate' }}">
+                                <i class="fa-solid {{ $block->is_active === \App\Enums\ActiveStatus::ACTIVE ? 'fa-eye-slash' : 'fa-eye' }}"></i>
+                            </button>
+                        </form>
                         <a href="{{ route('admin.blocks.edit', $block->id) }}" class="btn btn-sm btn-outline-primary">
                             <i class="fa-solid fa-pen"></i> Edit
                         </a>
@@ -54,7 +63,7 @@
                         </form>
                     </div>
                 </div>
-                
+
                 <div class="mt-3 pt-3 border-top">
                     <details>
                         <summary class="text-muted small cursor-pointer">View Content Preview</summary>
