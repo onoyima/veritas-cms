@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Veritas University CMS') }} - Staff Portal</title>
+    <title>Veritas CMS</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -20,14 +21,15 @@
         body {
             font-family: 'Instrument Sans', sans-serif;
             background-color: #f5f5f5;
+            overflow: hidden; /* Prevent body scroll for app-like layout */
         }
         .sidebar-gradient {
             background: radial-gradient(circle at center, #114629 0%, #092c19 100%);
         }
-        
+
         /* Layout Styles */
         #sidebar-wrapper {
-            min-height: 100vh;
+            height: 100vh; /* Full height */
             width: 280px;
             margin-left: 0;
             transition: margin .25s ease-out;
@@ -35,16 +37,27 @@
             top: 0;
             left: 0;
             z-index: 1040;
-            overflow-y: auto;
+            overflow-y: auto; /* Sidebar scrolls internally */
         }
-        
+
         #page-content-wrapper {
             margin-left: 280px;
             transition: margin .25s ease-out;
             width: calc(100% - 280px);
-            min-height: 100vh;
+            height: 100vh; /* Full height */
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* Wrapper doesn't scroll */
+            position: relative; /* Context for absolute navbar */
+        }
+
+        /* Main content area that scrolls */
+        #main-scroll-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding-top: 80px; /* Space for fixed navbar */
         }
 
         /* Glassmorphism Navbar */
@@ -52,6 +65,11 @@
             background-color: rgba(255, 255, 255, 0.85) !important;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
+            position: absolute; /* Overlay content */
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1020;
         }
 
         /* Responsive */
@@ -66,7 +84,7 @@
             #wrapper.toggled #sidebar-wrapper {
                 margin-left: 0;
             }
-            
+
             /* Overlay when sidebar is active on mobile */
             #wrapper.toggled #page-content-wrapper::before {
                 content: "";
@@ -94,22 +112,27 @@
             <!-- Navbar -->
             @include('partials.staff.navbar')
 
-            <!-- Main Content -->
-            <main class="flex-grow-1 p-4">
-                @yield('content')
-            </main>
+            <!-- Main Content Scrollable Area -->
+            <div id="main-scroll-container">
+                <main class="flex-grow-1 p-4">
+                    @yield('content')
+                </main>
+
+                <!-- Footer -->
+                @include('partials.staff.footer')
+            </div>
         </div>
     </div>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Sidebar Toggle Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const toggleButton = document.getElementById('sidebarToggle');
             const wrapper = document.getElementById('wrapper');
-            
+
             if(toggleButton) {
                 toggleButton.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -123,7 +146,7 @@
                     // Check if click is outside sidebar and toggle button
                     const sidebar = document.getElementById('sidebar-wrapper');
                     const toggle = document.getElementById('sidebarToggle');
-                    
+
                     if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
                         wrapper.classList.remove('toggled');
                     }
