@@ -12,6 +12,10 @@ Route::get('/', function () {
 });
 
 use App\Http\Controllers\Dashboard\ContentBlockController;
+use App\Http\Controllers\Dashboard\NewsController;
+use App\Http\Controllers\Dashboard\EventsController;
+use App\Http\Controllers\Dashboard\PersonnelController;
+use App\Http\Controllers\Dashboard\StudentGroupsController;
 
 // Admin / CMS Routes (Protected by Staff Auth & CMS Access)
 Route::middleware(['auth:staff', 'cms.auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -19,6 +23,15 @@ Route::middleware(['auth:staff', 'cms.auth'])->prefix('admin')->name('admin.')->
     Route::resource('pages', PageController::class);
     Route::patch('blocks/{block}/toggle-status', [ContentBlockController::class, 'toggleStatus'])->name('blocks.toggle-status');
     Route::resource('pages.blocks', ContentBlockController::class)->shallow();
+
+    // News Management
+    Route::resource('news', NewsController::class);
+    // Events Management
+    Route::resource('events', EventsController::class);
+    // Personnel Management
+    Route::resource('personnel', PersonnelController::class);
+    // Student Groups Management
+    Route::resource('student-groups', StudentGroupsController::class);
 });
 
 // Staff Authentication Routes

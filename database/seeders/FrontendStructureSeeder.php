@@ -13,6 +13,8 @@ use App\Models\WebsiteProgram;
 use App\Models\WebsiteCourse;
 use App\Models\WebsiteFaq;
 use App\Models\WebsiteAZEntry;
+use App\Models\WebsitePersonnel;
+use App\Models\WebsiteNews;
 use App\Enums\PageStatus;
 use App\Enums\ActiveStatus;
 use App\Enums\FeatureStatus;
@@ -20,6 +22,64 @@ use Illuminate\Support\Str;
 
 class FrontendStructureSeeder extends Seeder
 {
+    private function createRichText(string $text): array
+    {
+        return [
+            'nodeType' => 'document',
+            'data' => [],
+            'content' => [
+                [
+                    'nodeType' => 'paragraph',
+                    'data' => [],
+                    'content' => [
+                        [
+                            'nodeType' => 'text',
+                            'value' => $text,
+                            'marks' => [],
+                            'data' => [],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    private function createRichTextList(array $items): array
+    {
+        $listItems = array_map(function($item) {
+            return [
+                'nodeType' => 'list-item',
+                'data' => [],
+                'content' => [
+                    [
+                        'nodeType' => 'paragraph',
+                        'data' => [],
+                        'content' => [
+                            [
+                                'nodeType' => 'text',
+                                'value' => $item,
+                                'marks' => [],
+                                'data' => [],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        }, $items);
+
+        return [
+            'nodeType' => 'document',
+            'data' => [],
+            'content' => [
+                [
+                    'nodeType' => 'unordered-list',
+                    'data' => [],
+                    'content' => $listItems,
+                ],
+            ],
+        ];
+    }
+
     /**
      * Run the database seeds.
      */
@@ -43,8 +103,11 @@ class FrontendStructureSeeder extends Seeder
         // 6. Seed FAQs
         $this->seedFaqs();
 
-        // 7. Seed A-Z Entries
-        $this->seedAZEntries();
+        // 8. Seed Management Team
+        $this->seedManagement();
+
+        // 9. Seed News
+        $this->seedNews();
 
         $pages = [
             [
@@ -60,7 +123,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Shaping the Future Through Education and Innovation',
-                            'content1' => '<p>Join Veritas University and unlock your potential with our world-class education, modern facilities, and inspiring campus life.</p>',
+                            'content1' => $this->createRichText('Join Veritas University and unlock your potential with our world-class education, modern facilities, and inspiring campus life.'),
                             'list' => [
                                 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491849/Vuna-4625_pnjzzx.jpg',
                                 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491816/sisi-4557_bdzki6.jpg',
@@ -73,9 +136,9 @@ class FrontendStructureSeeder extends Seeder
                                 ['id' => 4, 'value' => 100, 'suffix' => '+', 'label' => 'Research Publications']
                             ],
                             'quick_links' => [
-                                ['id' => '1', 'title' => 'Admissions', 'description' => 'Learn about our admissions process and deadlines.', 'link' => '/admissions', 'linkText' => 'Explore Admissions'],
-                                ['id' => '2', 'title' => 'Programs', 'description' => 'Explore our undergraduate and postgraduate programs.', 'link' => '/undergraduate', 'linkText' => 'View Programs'],
-                                ['id' => '3', 'title' => 'Student Portal', 'description' => 'Access academic records, course materials, and more.', 'link' => 'https://admission.veritas.edu.ng/admission', 'linkText' => 'Go to Portal']
+                                ['id' => '1', 'icon' => '/assets/images/library.svg', 'title' => 'Admissions', 'description' => 'Learn about our admissions process and deadlines.', 'link' => '/admissions', 'linkText' => 'Explore Admissions'],
+                                ['id' => '2', 'icon' => '/assets/images/graduate-hat.svg', 'title' => 'Programs', 'description' => 'Explore our undergraduate and postgraduate programs.', 'link' => '/undergraduate', 'linkText' => 'View Programs'],
+                                ['id' => '3', 'icon' => '/assets/images/spreadsheet.svg', 'title' => 'Student Portal', 'description' => 'Access academic records, course materials, and more.', 'link' => 'https://admission.veritas.edu.ng/admission', 'linkText' => 'Go to Portal']
                             ]
                         ]
                     ],
@@ -89,30 +152,40 @@ class FrontendStructureSeeder extends Seeder
                             'subheading' => 'From cutting-edge research to hands-on learning, explore the diverse programs and departments that empower our students to excel.',
                             'items' => [
                                 [
-                                    'title' => 'faculty of mbbs',
-                                    'subtitle' => 'Medicine',
-                                    'description' => 'The Computer Science Department at our institution is dedicated to providing cutting-edge education and research opportunities in the rapidly evolving field of computer',
-                                    'href' => '/undergraduate/mbbs-medicine-and-surgery',
-                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491849/Vuna-4625_pnjzzx.jpg',
-                                    'size' => 'lg'
+                                    'id' => '1',
+                                    'title' => 'World-class faculty and research opportunities.',
+                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492224/MTG-4553_tuouqt.jpg',
+                                    'link' => '/research'
                                 ],
                                 [
-                                    'title' => 'faculty of health sciences',
-                                    'subtitle' => 'Nursing science',
-                                    'href' => '/undergraduate/bsc-nursing-science',
-                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491816/sisi-4557_bdzki6.jpg'
+                                    'id' => '2',
+                                    'title' => 'State-of-the-art facilities and modern campus.',
+                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492279/MTG-4591_e2a3hv.jpg',
+                                    'link' => '/campus-life'
                                 ],
                                 [
-                                    'title' => 'faculty of engineering',
-                                    'subtitle' => 'Computer Engineering',
-                                    'href' => '/undergraduate/b-eng-computer-engineering',
-                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491832/Vuna-2019.jpg-_yftz3a.jpg'
+                                    'id' => '3',
+                                    'title' => 'Extensive academic scholarship programs',
+                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491835/Vuna-2090.jpg-_iiq5o7.jpg',
+                                    'link' => '/undergraduate'
                                 ],
                                 [
-                                    'title' => 'faculty of social sciences',
-                                    'subtitle' => 'Mass Communication',
-                                    'href' => '/undergraduate/bsc-mass-communication',
-                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492266/MTG-2188_skcr9g.jpg'
+                                    'id' => '4',
+                                    'title' => 'Cultural activities, play and student week.',
+                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703536/dance-performance_edcqf4.png',
+                                    'link' => '/campus-life'
+                                ],
+                                [
+                                    'id' => '5',
+                                    'title' => 'Active sports and student events that foster student development.',
+                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491720/sisi-2442_ta8un6.jpg',
+                                    'link' => '/campus-life'
+                                ],
+                                [
+                                    'id' => '6',
+                                    'title' => 'Dedicated to supporting the spiritual life of our students, staff, and families.',
+                                    'imgSrc' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703440/chaplaincyHolySeeImg_wzusz8.png',
+                                    'link' => '/chaplaincy'
                                 ]
                             ]
                         ]
@@ -124,11 +197,11 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 3,
                         'content' => [
                             'heading1' => 'Research Highlights',
-                            'content1' => '<p>Explore our commitment to advancing knowledge through impactful research.</p>',
+                            'content1' => $this->createRichText('Explore our commitment to advancing knowledge through impactful research.'),
                             'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492224/MTG-4553_tuouqt.jpg',
-                            'heading2' => '200', 'content2' => 'Peer-Reviewed Papers Published Annually',
-                            'heading3' => '50', 'content3' => 'Ongoing Research Initiatives',
-                            'heading4' => '30', 'content4' => 'Partnerships with Leading Organizations'
+                            'heading2' => '200', 'content2' => $this->createRichText('Peer-Reviewed Papers Published Annually'),
+                            'heading3' => '50', 'content3' => $this->createRichText('Ongoing Research Initiatives'),
+                            'heading4' => '30', 'content4' => $this->createRichText('Partnerships with Leading Organizations')
                         ]
                     ],
                     [
@@ -180,12 +253,19 @@ class FrontendStructureSeeder extends Seeder
                         'name' => 'Veritas at a Glance',
                         'order' => 7,
                         'content' => [
-                            'heading1' => '300', 'content1' => 'Undergraduate and Postgraduate students across different Programmes',
-                            'heading2' => '10000', 'content2' => 'Alumni worldwide making visible impacts and contributing to global development.',
-                            'heading3' => '20000000', 'content3' => 'Grants given to local communities around the institution and beyond.',
-                            'heading4' => '56', 'content4' => 'Academic professors lecturing, researching and contributing to community.',
-                            'heading5' => '2002', 'content5' => 'Our establishment by an Act of Parliament',
-                            'heading6' => '15', 'content6' => 'Research Institutes across several interdisciplinary boundaries'
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/video/upload/v1/veritas-intro.mp4',
+                            'heading1' => '300',
+                            'content1' => $this->createRichText('Undergraduate and Postgraduate students across different Programmes'),
+                            'heading2' => '10000',
+                            'content2' => $this->createRichText('Alumni worldwide making visible impacts and contributing to global development.'),
+                            'heading3' => '20000000',
+                            'content3' => $this->createRichText('Grants given to local communities around the institution and beyond.'),
+                            'heading4' => '56',
+                            'content4' => $this->createRichText('Academic professors lecturing, researching and contributing to community.'),
+                            'heading5' => '2002',
+                            'content5' => $this->createRichText('Our establishment by an Act of Parliament'),
+                            'heading6' => '15',
+                            'content6' => $this->createRichText('Research Institutes across several interdisciplinary boundaries')
                         ]
                     ],
                     [
@@ -213,9 +293,9 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'About Veritas University',
-                            'content1' => '<p>Veritas University is a dynamic community of learning, founded on the Catholic tradition of academic excellence and moral formation. We are committed to nurturing the next generation of leaders who will transform society through knowledge and integrity.</p>',
-                            'content2' => '<p>Our campus offers a serene and conducive environment for intellectual pursuit, spiritual growth, and social interaction. We believe in the holistic development of every student.</p>',
-                            'imageUrl1' => '/assets/images/about/buildingOne.jpg'
+                            'content1' => $this->createRichText('Veritas University is a dynamic community of learning, founded on the Catholic tradition of academic excellence and moral formation. We are committed to nurturing the next generation of leaders who will transform society through knowledge and integrity.'),
+                            'content2' => $this->createRichText('Our campus offers a serene and conducive environment for intellectual pursuit, spiritual growth, and social interaction. We believe in the holistic development of every student.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745603546/abouthero_ixjrwo.webp'
                         ]
                     ],
                     [
@@ -225,11 +305,12 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 2,
                         'content' => [
                             'heading1' => 'Our Journey',
-                            'content1' => '<p>Founded in 2002 by the Catholic Bishops Conference of Nigeria, Veritas University has grown from humble beginnings to become a premier institution of higher learning.</p>',
-                            'content2' => '<p>Licensed by the National Universities Commission in 2007, we have consistently upheld high academic standards.</p>',
-                            'content3' => '<p>We commenced academic activities in Obehie, Abia State, before moving to our permanent site.</p>',
-                            'content4' => '<p>Relocated to the permanent campus in Abuja in 2008, expanding our facilities and programs.</p>',
-                            'content5' => '<p>Today, we continue to grow with new faculties, research centers, and a diverse student body.</p>'
+                            'content1' => $this->createRichText('Founded in 2002 by the Catholic Bishops Conference of Nigeria, Veritas University has grown from humble beginnings to become a premier institution of higher learning.'),
+                            'content2' => $this->createRichText('Licensed by the National Universities Commission in 2007, we have consistently upheld high academic standards.'),
+                            'content3' => $this->createRichText('We commenced academic activities in Obehie, Abia State, before moving to our permanent site.'),
+                            'content4' => $this->createRichText('Relocated to the permanent campus in Abuja in 2008, expanding our facilities and programs.'),
+                            'content5' => $this->createRichText('Today, we continue to grow with new faculties, research centers, and a diverse student body.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492247/MTG-0080_a83egc.jpg'
                         ]
                     ],
                     [
@@ -239,15 +320,15 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 3,
                         'content' => [
                             'heading1' => 'Foundation',
-                            'content1' => '<p>Veritas University, Abuja (VUNA) is the Catholic University of Nigeria, established to provide high-quality education balanced with moral and spiritual values.</p>',
+                            'content1' => $this->createRichText('Veritas University, Abuja (VUNA) is the Catholic University of Nigeria, established to provide high-quality education balanced with moral and spiritual values.'),
                             'heading2' => 'Mission',
-                            'content2' => '<p>To provide integral education that combines academic excellence with moral and spiritual formation, empowering students to become ethical leaders.</p>',
+                            'content2' => $this->createRichText('To provide integral education that combines academic excellence with moral and spiritual formation, empowering students to become ethical leaders.'),
                             'heading3' => 'Vision',
-                            'content3' => '<p>To be a top-class university recognized globally for research, teaching, and community service.</p>',
+                            'content3' => $this->createRichText('To be a top-class university recognized globally for research, teaching, and community service.'),
                             'heading4' => 'Philosophy',
-                            'content4' => '<p>To produce graduates who are theoretically knowledgeable and practically skillful, ready to contribute to national development.</p>',
+                            'content4' => $this->createRichText('To produce graduates who are theoretically knowledgeable and practically skillful, ready to contribute to national development.'),
                             'heading5' => 'Core Values',
-                            'content5' => '<ul><li>Academic Excellence</li><li>Moral Integrity</li><li>Service to Humanity</li><li>Social Justice</li></ul>'
+                            'content5' => $this->createRichTextList(['Academic Excellence', 'Moral Integrity', 'Service to Humanity', 'Social Justice'])
                         ]
                     ],
                     [
@@ -257,9 +338,9 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 4,
                         'content' => [
                             'heading1' => 'University Management',
-                            'content1' => '<p>Meet the dedicated team leading Veritas University towards achieving its strategic goals.</p>',
-                            'content2' => '<p>Our management team comprises experienced administrators and distinguished academics committed to excellence.</p>',
-                            'imageUrl1' => '/assets/images/about/founder.jpg'
+                            'content1' => $this->createRichText('Meet the dedicated team leading Veritas University towards achieving its strategic goals.'),
+                            'content2' => $this->createRichText('Our management team comprises experienced administrators and distinguished academics committed to excellence.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491824/VC_rwpbwj.jpg'
                         ]
                     ]
                 ]
@@ -277,10 +358,17 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Undergraduate Admissions',
-                            'content1' => '<p>Start your academic journey with our diverse undergraduate programs. We offer a wide range of courses designed to prepare you for a successful career.</p>',
-                            'imageUrl1' => '/assets/images/admissions/undergrad-1.jpg',
-                            'imageUrl2' => '/assets/images/admissions/undergrad-2.jpg',
-                            'list' => 'Minimum of 5 Credits in WAEC/NECO === UTME Score of 170+ === Birth Certificate === Testimonial'
+                            'content1' => $this->createRichText('Start your academic journey with our diverse undergraduate programs. We offer a wide range of courses designed to prepare you for a successful career.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491827/Vuna-1971.jpg-_k99bco.jpg',
+                            'imageUrl2' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491830/Vuna-1989.jpg-_pqky9v.jpg',
+                            'heading2' => 'Admission Requirements',
+                            'content2' => $this->createRichText('Candidates must possess a minimum of 5 credits in WAEC/NECO/NABTEB including English Language and Mathematics at not more than two sittings.'),
+                            'heading3' => 'How to Apply',
+                            'content3' => $this->createRichText('Visit our admissions portal to complete your application form online. Upload necessary documents and pay the application fee.'),
+                            'link1' => 'https://admission.veritas.edu.ng',
+                            'heading4' => 'Tuition & Fees',
+                            'content4' => $this->createRichText('Our tuition fees are affordable and competitive. Visit the Fees page for a detailed breakdown.'),
+                            'list' => ['Minimum of 5 Credits in WAEC/NECO === UTME Score of 170+ === Birth Certificate === Testimonial']
                         ]
                     ],
                     [
@@ -289,11 +377,18 @@ class FrontendStructureSeeder extends Seeder
                         'name' => 'JUPEB Admissions',
                         'order' => 2,
                         'content' => [
-                            'heading1' => 'JUPEB Program',
-                            'content1' => '<p>Gain direct entry into 200 level through our JUPEB program. It is an intensive one-year foundation course.</p>',
-                            'imageUrl1' => '/assets/images/admissions/jupeb-1.jpg',
-                            'imageUrl2' => '/assets/images/admissions/jupeb-2.jpg',
-                            'list' => '5 Credits in O-Level === Passport Photographs === Birth Certificate'
+                            'heading1' => 'JUPEB Admissions',
+                            'content1' => $this->createRichText('Gain direct entry into 200 level with our JUPEB program. It is an intensive 9-month program designed to prepare you for university education.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491830/Vuna-1989.jpg-_pqky9v.jpg',
+                            'imageUrl2' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491827/Vuna-1971.jpg-_k99bco.jpg',
+                            'heading2' => 'Admission Requirements',
+                            'content2' => $this->createRichText('Candidates must possess a minimum of 5 credits in O-Level subjects relevant to their desired course of study.'),
+                            'heading3' => 'How to Apply',
+                            'content3' => $this->createRichText('Click the button below to start your JUPEB application.'),
+                            'link1' => 'https://admission.veritas.edu.ng/jupeb',
+                            'heading4' => 'Program Duration',
+                            'content4' => $this->createRichText('The program runs for one academic session (approximately 9 months).'),
+                            'list' => ['5 Credits in O-Level === Birth Certificate === Testimonial === Passport Photograph']
                         ]
                     ],
                     [
@@ -302,11 +397,18 @@ class FrontendStructureSeeder extends Seeder
                         'name' => 'IJMB Admissions',
                         'order' => 3,
                         'content' => [
-                            'heading1' => 'IJMB Program',
-                            'content1' => '<p>Secure admission into university without JAMB through IJMB. Recognized widely for direct entry admission.</p>',
-                            'imageUrl1' => '/assets/images/admissions/ijmb-1.jpg',
-                            'imageUrl2' => '/assets/images/admissions/ijmb-2.jpg',
-                            'list' => 'O-Level Results === Birth Certificate === State of Origin'
+                            'heading1' => 'IJMB Admissions',
+                            'content1' => $this->createRichText('The Interim Joint Matriculation Board (IJMB) program offers another pathway to university admission without JAMB.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491835/Vuna-2275.jpg-_rr2ew9.jpg',
+                            'imageUrl2' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491832/Vuna-2019.jpg-_yftz3a.jpg',
+                            'heading2' => 'Admission Requirements',
+                            'content2' => $this->createRichText('Candidates must have 5 O-Level credits. IJMB certificate is accepted in most Nigerian universities for Direct Entry.'),
+                            'heading3' => 'How to Apply',
+                            'content3' => $this->createRichText('Apply online through our portal.'),
+                            'link1' => 'https://admission.veritas.edu.ng/ijmb',
+                            'heading4' => 'Benefits',
+                            'content4' => $this->createRichText('IJMB results do not expire and guarantee admission into 200 level.'),
+                            'list' => ['5 Credits in O-Level === Birth Certificate === Testimonial === Passport Photograph']
                         ]
                     ],
                     [
@@ -315,11 +417,18 @@ class FrontendStructureSeeder extends Seeder
                         'name' => 'Sandwich Admissions',
                         'order' => 4,
                         'content' => [
-                            'heading1' => 'Sandwich Program',
-                            'content1' => '<p>Flexible learning options for working professionals. Enhance your qualifications while you work.</p>',
-                            'imageUrl1' => '/assets/images/admissions/sandwich-1.jpg',
-                            'imageUrl2' => '/assets/images/admissions/sandwich-2.jpg',
-                            'list' => 'NCE/Diploma Certificate === O-Level Results === Employment Letter (if applicable)'
+                            'heading1' => 'Sandwich Admissions',
+                            'content1' => $this->createRichText('Our Sandwich program is designed for working professionals who want to further their education while maintaining their careers.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491816/sisi-4557_bdzki6.jpg',
+                            'imageUrl2' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491849/Vuna-4625_pnjzzx.jpg',
+                            'heading2' => 'Admission Requirements',
+                            'content2' => $this->createRichText('Applicants must possess relevant NCE or Diploma certificates in addition to O-Level credits.'),
+                            'heading3' => 'How to Apply',
+                            'content3' => $this->createRichText('Pick up a form at the university or apply online.'),
+                            'link1' => 'https://admission.veritas.edu.ng/sandwich',
+                            'heading4' => 'Schedule',
+                            'content4' => $this->createRichText('Lectures are held during holidays and weekends to accommodate work schedules.'),
+                            'list' => ['NCE/Diploma Certificate === 5 Credits in O-Level === Birth Certificate === Employment Letter (Optional)']
                         ]
                     ],
                     [
@@ -328,11 +437,18 @@ class FrontendStructureSeeder extends Seeder
                         'name' => 'Postgraduate Admissions',
                         'order' => 5,
                         'content' => [
-                            'heading1' => 'Postgraduate School',
-                            'content1' => '<p>Advance your career with our Masters and PhD programs. Engage in advanced research and scholarship.</p>',
-                            'imageUrl1' => '/assets/images/admissions/pg-1.jpg',
-                            'imageUrl2' => '/assets/images/admissions/pg-2.jpg',
-                            'list' => 'First Degree Certificate === NYSC Discharge/Exemption === O-Level Results === Transcript'
+                            'heading1' => 'Postgraduate Admissions',
+                            'content1' => $this->createRichText('Advance your career with our postgraduate degrees. We offer PGD, Masters, and PhD programs across various disciplines.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492279/MTG-4591_e2a3hv.jpg',
+                            'imageUrl2' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492224/MTG-4553_tuouqt.jpg',
+                            'heading2' => 'Admission Requirements',
+                            'content2' => $this->createRichText('A good first degree from a recognized university. For PhD, a Masters degree is required.'),
+                            'heading3' => 'How to Apply',
+                            'content3' => $this->createRichText('Complete the online application form and submit your transcripts.'),
+                            'link1' => 'https://admission.veritas.edu.ng/pg',
+                            'heading4' => 'Research Areas',
+                            'content4' => $this->createRichText('Our postgraduate school supports cutting-edge research in Humanities, Sciences, and Social Sciences.'),
+                            'list' => ['NYSC Discharge Certificate === University Degree Certificate === Transcript === 3 Reference Letters']
                         ]
                     ]
                 ]
@@ -350,12 +466,12 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Campus Life === at Veritas',
-                            'content1' => '<p>Veritas University offers a vibrant campus life experience, fostering community, personal growth, and academic excellence.</p>',
+                            'content1' => $this->createRichText('Veritas University offers a vibrant campus life experience, fostering community, personal growth, and academic excellence.'),
                             'list' => [
-                                '/assets/images/campus/collaboration.jpg === /assets/images/campus/hanging-out.jpg',
-                                '/assets/images/campus/soccer-game.jpg === /assets/images/campus/cultural-day.jpg',
-                                '/assets/images/campus/male-students.jpg === /assets/images/campus/basketball.jpg',
-                                '/assets/images/campus/dance.jpg === /assets/images/campus/yoga.jpg'
+                                'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745793034/collaboration_lalqvy.png === https://res.cloudinary.com/dbhjueg2l/image/upload/v1745793273/people-hanging-out_fwh4zg.png',
+                                'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703545/soccer-game_jj5lta.png === https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703530/cultural-day_rnxldp.png',
+                                'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745795747/male-students_puozny.png === https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703525/basketball-game_slfqp0.png',
+                                'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703536/dance-performance_edcqf4.png === https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703533/man-with-yoga-mat_v2lup6.png'
                             ]
                         ]
                     ],
@@ -382,18 +498,18 @@ class FrontendStructureSeeder extends Seeder
                             'items' => [
                                 [
                                     'heading1' => 'SRA === Students Representative Assembly',
-                                    'imageUrl1' => '/assets/images/campus/protestors.jpg',
-                                    'content1' => '<p>A Student Representative Assembly (SRA) in a Catholic university context serves as the official voice of the student body, representing student interests while operating within the university\'s Catholic mission and values.</p><p>The SRA acts as the primary governing body for student affairs, creating a structured channel for student participation in university governance.</p>'
+                                    'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745818585/protestors_mxeted.png',
+                                    'content1' => $this->createRichText("A Student Representative Assembly (SRA) in a Catholic university context serves as the official voice of the student body, representing student interests while operating within the university's Catholic mission and values. The SRA acts as the primary governing body for student affairs, creating a structured channel for student participation in university governance. In Catholic universities, the SRA helps ensure student perspectives are integrated into decision-making while respecting the institution's religious identity.")
                                 ],
                                 [
                                     'heading1' => 'NFCS === Nigerian Federation of Catholic Students',
-                                    'imageUrl1' => '/assets/images/campus/cathedral.jpg',
-                                    'content1' => '<p>The Nigerian Federation of Catholic Students (NFCS) unites Catholic students to foster their spiritual growth and active participation in the Church\'s mission.</p>'
+                                    'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745817925/cathedral_baubm0.png',
+                                    'content1' => $this->createRichText("Student Representative Assembly (SRA) in a Catholic university context serves as the official voice of the student body, representing student interests while operating within the university's Catholic mission and values. Here's a comprehensive overview of student participation in university governance. In Catholic universities, the SRA helps ensure student perspectives are integrated into decision-making while respecting the institution's religious identity.")
                                 ],
                                 [
                                     'heading1' => 'VERITAS SPORTS === Veritas University Sports Center',
-                                    'imageUrl1' => '/assets/images/campus/track.jpg',
-                                    'content1' => '<p>Veritas Sports Center provides state-of-the-art facilities for various sports, promoting physical fitness and team spirit among students.</p>'
+                                    'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703553/track_qstmjv.png',
+                                    'content1' => $this->createRichText("A Student Representative Assembly (SRA) in a Catholic university context serves as the official voice of the student body, representing student interests while operating within the university's Catholic mission and as the primary governing body for student affairs, creating a structured channel for student participation in university governance. In Catholic universities, the SRA helps ensure student perspectives are integrated into decision-making while respecting the institution's religious identity.")
                                 ]
                             ]
                         ]
@@ -433,7 +549,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Chaplaincy',
-                            'content1' => '<p>Nurturing the spiritual life of the Veritas community.</p>'
+                            'content1' => $this->createRichText('Nurturing the spiritual life of the Veritas community.')
                         ]
                     ],
                     [
@@ -443,7 +559,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 2,
                         'content' => [
                             'heading1' => 'Our Spiritual Focus',
-                            'content1' => '<p>We focus on the holistic formation of our students through prayer, sacraments, and service.</p>'
+                            'content1' => $this->createRichText('We focus on the holistic formation of our students through prayer, sacraments, and service.')
                         ]
                     ],
                     [
@@ -453,7 +569,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 3,
                         'content' => [
                             'heading1' => 'The Holy See',
-                            'content1' => '<p>Guided by the teachings of the Catholic Church and the Holy Father.</p>'
+                            'content1' => $this->createRichText('Guided by the teachings of the Catholic Church and the Holy Father.')
                         ]
                     ],
                     [
@@ -463,7 +579,10 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 4,
                         'content' => [
                             'heading1' => 'Mass Schedules',
-                            'content1' => '<p>Daily Mass: 6:30 AM, 12:00 PM</p><p>Sunday Mass: 7:00 AM, 9:00 AM</p>'
+                            'content1' => $this->createRichTextList([
+                                'Daily Mass: 6:30 AM, 12:00 PM',
+                                'Sunday Mass: 7:00 AM, 9:00 AM'
+                            ])
                         ]
                     ],
                 ]
@@ -481,7 +600,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Tuition & Fees',
-                            'content1' => '<p>We are committed to providing affordable quality education. Find detailed information about tuition, accommodation, and other fees here.</p>'
+                            'content1' => $this->createRichText('We are committed to providing affordable quality education. Find detailed information about tuition, accommodation, and other fees here.')
                         ]
                     ],
                     [
@@ -541,29 +660,112 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Research at Veritas',
-                            'content1' => '<p>We are a research-intensive university committed to solving local and global challenges through innovative research.</p>'
+                            'content1' => $this->createRichText('We are a research-intensive university committed to solving local and global challenges through innovative research.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745603546/abouthero_ixjrwo.webp'
+                        ]
+                    ],
+                    [
+                        'type' => 'template',
+                        'identifier' => 'research-page-stats',
+                        'name' => 'Research Stats',
+                        'order' => 2,
+                        'content' => [
+                            'stats' => [
+                                ['value' => '15', 'suffix' => ' Institutes', 'label' => 'Cross interdisciplinary boundaries'],
+                                ['value' => '200', 'suffix' => '+', 'label' => 'Published article and manuscript'],
+                                ['value' => '2.2', 'prefix' => '₦', 'suffix' => ' Billion', 'label' => 'Sponsored research budget'],
+                            ]
+                        ]
+                    ],
+                    [
+                        'type' => 'template',
+                        'identifier' => 'research-groups-list',
+                        'name' => 'Research Groups',
+                        'order' => 3,
+                        'content' => [
+                            'heading1' => 'Our Research Focus and Themes',
+                            'content1' => $this->createRichText('Explore our specialized research teams.'),
+                            'items' => [
+                                [
+                                    'title' => 'SLAC National Accelerator Laboratory',
+                                    'image' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703411/cpu_dggfra.png',
+                                    'link' => 'slac'
+                                ],
+                                [
+                                    'title' => 'Neuroscience',
+                                    'image' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703416/jellyfish_kfpoww.png',
+                                    'link' => 'neuroscience'
+                                ],
+                                [
+                                    'title' => 'Mechanical labs and research',
+                                    'image' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703410/engine_j8lojv.png',
+                                    'link' => 'mechanical-labs'
+                                ],
+                                [
+                                    'title' => 'Biomedical Sciences',
+                                    'image' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703409/mouse_s4txno.png',
+                                    'link' => 'biomedical-sciences'
+                                ],
+                                [
+                                    'title' => 'SLAC National Accelerator Laboratory',
+                                    'image' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703408/architectural-plan_icqwcq.png',
+                                    'link' => 'slac'
+                                ],
+                                [
+                                    'title' => 'Psychology',
+                                    'image' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745602146/painted-face_gz9egr.png',
+                                    'link' => 'psychology'
+                                ]
+                            ]
                         ]
                     ],
                     [
                         'type' => 'template',
                         'identifier' => 'research-page-third-section',
-                        'name' => 'SDGs',
-                        'order' => 2,
+                        'name' => 'Research Publications',
+                        'order' => 4,
                         'content' => [
-                            'heading1' => 'Sustainable Development Goals',
-                            'content1' => '<p>Our research is aligned with the United Nations Sustainable Development Goals (SDGs), focusing on impactful solutions for a better world.</p>'
+                            'heading1' => 'Recent Publications',
+                            'items' => [
+                                [
+                                    'img' => '/assets/images/publication-a.png',
+                                    'title' => 'Research Articles, Behavioral/Cognitive',
+                                    'description' => 'Learning modulates early encephalographic responses to distracting stimuli: a combined SSVEP and ERP study',
+                                    'reference' => 'Journal of Neuroscience 4 April 2025, e1973242025; https://doi.org/10.1523/JNEUROSCI.1973-24.2025',
+                                    'subtext' => 'Research Articles, Behavioral/Cognitive'
+                                ],
+                                [
+                                    'img' => '/assets/images/publication-b.png',
+                                    'title' => 'Research Articles, Behavioral/Cognitive',
+                                    'description' => 'Learning modulates early encephalographic responses to distracting stimuli: a combined SSVEP and ERP study',
+                                    'reference' => 'Journal of Neuroscience 4 April 2025, e1973242025; https://doi.org/10.1523/JNEUROSCI.1973-24.2025',
+                                    'subtext' => 'Research Articles, Behavioral/Cognitive'
+                                ]
+                            ]
                         ]
                     ],
                     [
-                        'type' => 'system',
-                        'identifier' => 'research-groups-list',
-                        'name' => 'Research Groups',
-                        'order' => 3,
+                        'type' => 'template',
+                        'identifier' => 'research-sdgs',
+                        'name' => 'SDGs',
+                        'order' => 5,
                         'content' => [
-                            'heading' => 'Our Research Groups',
-                            'subheading' => 'Explore our specialized research teams.'
+                            'heading1' => 'Sustainable Development Goals',
+                            'items' => [
+                                ['label' => 'SDG 1 - No Poverty', 'color' => '#000', 'bgColor' => '#BAFFE5'],
+                                ['label' => 'SDG 2 - Zero Hunger', 'color' => '#fff', 'bgColor' => '#095D3F'],
+                                ['label' => 'SDG 3 - Good Health and Wellbeing', 'color' => '#fff', 'bgColor' => '#466DEE'],
+                                ['label' => 'SDG 4 - Quality Education', 'color' => '#fff', 'bgColor' => '#C5192D'],
+                                ['label' => 'SDG 5 - Gender Equality', 'color' => '#fff', 'bgColor' => '#FF3A21'],
+                                ['label' => 'SDG 6 - Clean Water and Sanitation', 'color' => '#fff', 'bgColor' => '#26BDE2'],
+                                ['label' => 'SDG 7 - Affordable and Clean Energy', 'color' => '#000', 'bgColor' => '#FCC30B'],
+                                ['label' => 'SDG 8 - Decent work and Economic Growth', 'color' => '#fff', 'bgColor' => '#A21942'],
+                                ['label' => 'SDG 9 - Industry, Innovation and Infrastructure', 'color' => '#fff', 'bgColor' => '#FD6925'],
+                                ['label' => 'SDG 10 - Reduced Inequalities', 'color' => '#fff', 'bgColor' => '#DD1367'],
+                            ]
                         ]
                     ]
+
                 ]
             ],
             [
@@ -579,7 +781,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'News & Events',
-                            'content1' => '<p>Stay updated with the latest happenings at Veritas University.</p>'
+                            'content1' => $this->createRichText('Stay updated with the latest happenings at Veritas University.')
                         ]
                     ],
                     [
@@ -617,7 +819,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Undergraduate School',
-                            'content1' => '<p>Join our vibrant community of learners and leaders. Discover programs that ignite your passion and prepare you for the future.</p>',
+                            'content1' => $this->createRichText('Join our vibrant community of learners and leaders. Discover programs that ignite your passion and prepare you for the future.'),
                             'imageUrl1' => '/assets/images/undergraduate/hero-bg-1.jpg',
                             'imageUrl2' => '/assets/images/undergraduate/hero-bg-2.jpg',
                             'list' => [
@@ -645,7 +847,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 3,
                         'content' => [
                             'heading1' => 'Why Choose Veritas?',
-                            'content1' => '<p>Experienced Faculty, Practical Learning, and Career Growth.</p>'
+                            'content1' => $this->createRichText('Experienced Faculty, Practical Learning, and Career Growth.')
                         ]
                     ]
                 ]
@@ -663,7 +865,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Postgraduate School',
-                            'content1' => '<p>Advance your career with our world-class postgraduate programs. Engage in research that matters.</p>',
+                            'content1' => $this->createRichText('Advance your career with our world-class postgraduate programs. Engage in research that matters.'),
                             'imageUrl1' => '/assets/images/postgraduate/hero-bg.jpg'
                         ]
                     ],
@@ -692,7 +894,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'A–Z Index of Veritas University',
-                            'content1' => '<p>Use this comprehensive directory to quickly access all departments, services, programs, and university resources. Browse alphabetically or search to find what you’re looking for.</p>'
+                            'content1' => $this->createRichText('Use this comprehensive directory to quickly access all departments, services, programs, and university resources. Browse alphabetically or search to find what you’re looking for.')
                         ]
                     ],
                     [
@@ -769,7 +971,7 @@ class FrontendStructureSeeder extends Seeder
                         'order' => 1,
                         'content' => [
                             'heading1' => 'Frequently Asked Questions',
-                            'content1' => '<p>Find answers to the most common questions about admissions, academics, campus life, and student services. Still need help? Our team is here to support you.</p>'
+                            'content1' => $this->createRichText('Find answers to the most common questions about admissions, academics, campus life, and student services. Still need help? Our team is here to support you.')
                         ]
                     ],
                     [
@@ -792,12 +994,14 @@ class FrontendStructureSeeder extends Seeder
                 'blocks' => [
                     [
                         'type' => 'template',
-                        'identifier' => 'management-page-hero',
+                        'identifier' => 'university-management-page-first-section',
                         'name' => 'Hero Section',
                         'order' => 1,
                         'content' => [
                             'heading1' => 'University Management',
-                            'content1' => '<p>Meet the visionary leaders guiding Veritas University towards excellence.</p>'
+                            'content1' => $this->createRichText('Meet the visionary leaders guiding Veritas University towards excellence.'),
+                            'imageUrl1' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491845/Vuna-2495_anpcht.jpg',
+                            'imageUrl2' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491782/sisi-2689_xk5trj.jpg'
                         ]
                     ],
                     [
@@ -856,36 +1060,37 @@ class FrontendStructureSeeder extends Seeder
                         ]
                     ]
                 );
-            }
+
         }
     }
+}
 
     private function seedStudentGroups(): void
     {
         $groups = [
             [
                 'title' => 'Debate Club',
-                'description' => 'The Debate Club fosters critical thinking and public speaking skills through regular debates and competitions.',
-                'member_count' => '45+',
-                'image_url' => '/assets/images/campus/debate-club.jpg'
+                'description' => 'The Veritas Debate Club fosters critical thinking, public speaking, and argumentation skills. Members participate in inter-university competitions and host local debates on current affairs.',
+                'member_count' => '50+',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703532/debate-club_shkywb.png'
             ],
             [
                 'title' => 'Dance Group',
-                'description' => 'Our Dance Group explores various dance styles and performs at university events and competitions.',
-                'member_count' => '45+',
-                'image_url' => '/assets/images/campus/dance-club.jpg'
+                'description' => 'Our Dance Group explores various dance styles from traditional African dances to contemporary and hip-hop. We perform at university events and cultural festivals.',
+                'member_count' => '30+',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703528/dance-club_vycyzd.png'
             ],
             [
                 'title' => 'Drama Group',
-                'description' => 'The Drama Group stages plays and theatrical performances, nurturing acting and production talents.',
-                'member_count' => '45+',
-                'image_url' => '/assets/images/campus/drama-club.jpg'
+                'description' => 'The Drama Group brings stories to life on stage. From Shakespearean classics to modern plays, we provide opportunities for acting, directing, and stage management.',
+                'member_count' => '40+',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703530/drama-club_hjtxgq.png'
             ],
             [
                 'title' => 'Musical Group',
-                'description' => 'The Musical Group brings together vocalists and instrumentalists to perform diverse musical genres.',
-                'member_count' => '45+',
-                'image_url' => '/assets/images/campus/music-club.jpg'
+                'description' => 'The Musical Group comprises the university choir and instrumentalists. We lead music at liturgical celebrations and perform at concerts and social events.',
+                'member_count' => '60+',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703534/music-club_poxetf.png'
             ],
         ];
 
@@ -907,34 +1112,34 @@ class FrontendStructureSeeder extends Seeder
     {
         $events = [
             [
-                'heading' => 'Universities Football Clubs',
-                'image_url' => '/assets/images/campus/soccer-game-2.jpg',
-                'event_type' => 'social'
+                'heading' => 'Inter-Faculty Football Tournament',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703542/soccer-game-2_mzg5lq.png',
+                'event_type' => 'Sports'
             ],
             [
-                'heading' => 'Student Week',
-                'image_url' => '/assets/images/campus/student-week.jpg',
-                'event_type' => 'social'
+                'heading' => 'Student Week Opening Ceremony',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703549/student-of-the-week_syvj3u.png',
+                'event_type' => 'Social'
             ],
             [
-                'heading' => 'Hausa Community Wins Cultural Competition Cup',
-                'image_url' => '/assets/images/campus/dance-performance.jpg',
-                'event_type' => 'social'
+                'heading' => 'Cultural Day Celebration',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703536/dance-performance_edcqf4.png',
+                'event_type' => 'Cultural'
             ],
             [
-                'heading' => 'Golden Boys Won The Trophy With Penalty Shootout',
-                'image_url' => '/assets/images/campus/sports.jpg',
-                'event_type' => 'social'
+                'heading' => 'Veritas Sports Festival',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703551/sports_f6zd8p.png',
+                'event_type' => 'Sports'
             ],
             [
-                'heading' => 'Amazulu vs Golden Boys',
-                'image_url' => '/assets/images/campus/soccer-game.jpg',
-                'event_type' => 'social'
+                'heading' => 'Novelty Match: Staff vs Students',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703545/soccer-game_jj5lta.png',
+                'event_type' => 'Sports'
             ],
             [
-                'heading' => 'Cultural Competition',
-                'image_url' => '/assets/images/campus/cultural-day.jpg',
-                'event_type' => 'social'
+                'heading' => 'Drama Night',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703530/cultural-day_rnxldp.png',
+                'event_type' => 'Arts'
             ],
         ];
 
@@ -958,31 +1163,120 @@ class FrontendStructureSeeder extends Seeder
     {
         $groups = [
             [
-                'title' => 'Software Engineering Research Group',
-                'description' => 'Focusing on AI, Machine Learning, and Software Development methodologies.',
-                'image_url' => '/assets/images/research/software.jpg',
+                'title' => 'SLAC National Accelerator Laboratory',
+                'slug' => 'slac',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703411/cpu_dggfra.png',
+                'spotlight' => [
+                    'content' => [
+                        [
+                            'nodeType' => 'paragraph',
+                            'data' => [],
+                            'content' => [
+                                [
+                                    'nodeType' => 'text',
+                                    'value' => 'SLAC is a U.S. Department of Energy national laboratory operated by Stanford, conducting research in chemistry, materials and energy sciences, bioscience, fusion energy science, high-energy physics, cosmology and other fields.',
+                                    'marks' => [],
+                                    'data' => []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             ],
             [
-                'title' => 'Biotechnology Research Cluster',
-                'description' => 'Advancing health and agriculture through biotechnology innovations.',
-                'image_url' => '/assets/images/research/biotech.jpg',
+                'title' => 'Neuroscience',
+                'slug' => 'neuroscience',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703416/jellyfish_kfpoww.png',
+                'spotlight' => [
+                    'content' => [
+                        [
+                            'nodeType' => 'paragraph',
+                            'data' => [],
+                            'content' => [
+                                [
+                                    'nodeType' => 'text',
+                                    'value' => 'Neuroscience research at Veritas explores the complexities of the brain and nervous system, advancing understanding of cognitive processes and neurological disorders.',
+                                    'marks' => [],
+                                    'data' => []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             ],
             [
-                'title' => 'Social Sciences & Development',
-                'description' => 'Researching societal issues, policy, and sustainable development.',
-                'image_url' => '/assets/images/research/social-science.jpg',
-            ]
+                'title' => 'Mechanical labs and research',
+                'slug' => 'mechanical-labs',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703410/engine_j8lojv.png',
+                'spotlight' => [
+                    'content' => [
+                        [
+                            'nodeType' => 'paragraph',
+                            'data' => [],
+                            'content' => [
+                                [
+                                    'nodeType' => 'text',
+                                    'value' => 'Our mechanical labs are equipped with state-of-the-art technology to support research in robotics, thermodynamics, and materials engineering.',
+                                    'marks' => [],
+                                    'data' => []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Biomedical Sciences',
+                'slug' => 'biomedical-sciences',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745703409/mouse_s4txno.png',
+                'spotlight' => [
+                    'content' => [
+                        [
+                            'nodeType' => 'paragraph',
+                            'data' => [],
+                            'content' => [
+                                [
+                                    'nodeType' => 'text',
+                                    'value' => 'Biomedical research focuses on developing new treatments and diagnostic tools to improve human health and combat diseases.',
+                                    'marks' => [],
+                                    'data' => []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Psychology',
+                'slug' => 'psychology',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745602146/painted-face_gz9egr.png',
+                'spotlight' => [
+                    'content' => [
+                        [
+                            'nodeType' => 'paragraph',
+                            'data' => [],
+                            'content' => [
+                                [
+                                    'nodeType' => 'text',
+                                    'value' => 'Our Psychology department conducts cutting-edge research in behavioral science, mental health, and social psychology.',
+                                    'marks' => [],
+                                    'data' => []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
         ];
 
         foreach ($groups as $group) {
             WebsiteResearchGroup::updateOrCreate(
-                ['title' => $group['title']],
+                ['slug' => $group['slug']],
                 [
-                    'slug' => Str::slug($group['title']),
-                    'description' => $group['description'],
+                    'title' => $group['title'],
                     'image_url' => $group['image_url'],
+                    'spotlight' => $group['spotlight'],
                     'is_active' => ActiveStatus::ACTIVE,
-                    'spotlight' => ['featured' => true]
                 ]
             );
         }
@@ -1139,7 +1433,11 @@ class FrontendStructureSeeder extends Seeder
                     'degree' => $data['degree'],
                     'faculty' => $data['faculty'],
                     'duration' => $data['duration'],
-                    'program_description' => ['content' => $data['description']],
+                    'program_description' => $this->createRichText($data['description']),
+                    'eligibility_criteria' => $this->createRichText('Five O’Level credits including Mathematics and English.'),
+                    'how_to_apply' => $this->createRichText('Apply online via the university portal.'),
+                    'financial_aid' => $this->createRichText('Scholarships available for meritorious students.'),
+                    'transfer_candidates' => $this->createRichText('Transcripts required from previous institution.'),
                     'course_id' => $course->id,
                     'is_active' => ActiveStatus::ACTIVE,
                 ]
@@ -1232,6 +1530,110 @@ class FrontendStructureSeeder extends Seeder
                     ]
                 );
             }
+        }
+    }
+
+    private function seedManagement(): void
+    {
+        $management = [
+            [
+                'name' => 'Prof. Hyacinth E. Ichoku',
+                'title' => 'Prof.',
+                'position' => 'Vice Chancellor',
+                'slug' => 'vice-chancellor',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491782/sisi-2689_xk5trj.jpg',
+                'email' => 'vc@veritas.edu.ng',
+                'biography' => $this->createRichText('Professor Hyacinth E. Ichoku is the Vice Chancellor of Veritas University, Abuja. He is a Professor of Development Economics with over 25 years of experience in teaching, research, and university administration.')
+            ],
+            [
+                'name' => 'Dr. Mrs. Stella C. Okonkwo',
+                'title' => 'Dr.',
+                'position' => 'Registrar',
+                'slug' => 'registrar',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491844/Vuna-2570_aewufs.jpg',
+                'email' => 'registrar@veritas.edu.ng',
+                'biography' => $this->createRichText('Dr. Mrs. Stella C. Okonkwo is the Registrar of Veritas University. She is responsible for the administrative machinery of the University.')
+            ],
+            [
+                'name' => 'Rev. Fr. Dr. Peter Bakwaph',
+                'title' => 'Rev. Fr. Dr.',
+                'position' => 'Deputy Vice Chancellor',
+                'slug' => 'deputy-vice-chancellor',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491760/sisi-2675_f85nfl.jpg',
+                'email' => 'dvc@veritas.edu.ng',
+                'biography' => $this->createRichText('Rev. Fr. Dr. Peter Bakwaph is the Deputy Vice Chancellor. He assists the Vice Chancellor in the academic and administrative leadership of the University.')
+            ],
+             [
+                'name' => 'Most Rev. Dr. Matthew Hassan Kukah',
+                'title' => 'Most Rev. Dr.',
+                'position' => 'Chancellor',
+                'slug' => 'chancellor',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491845/Vuna-2495_anpcht.jpg',
+                'email' => 'chancellor@veritas.edu.ng',
+                'biography' => $this->createRichText('Most Rev. Dr. Matthew Hassan Kukah is the Chancellor of Veritas University and the Catholic Bishop of Sokoto Diocese.')
+            ],
+            [
+                'name' => 'Rev. Fr. Martin Onukwuba',
+                'title' => 'Rev. Fr.',
+                'position' => 'University Chaplain',
+                'slug' => 'chaplain',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491765/sisi-2691_xxya1f.jpg',
+                'email' => 'chaplain@veritas.edu.ng',
+                'biography' => $this->createRichText('Rev. Fr. Martin Onukwuba is the University Chaplain, responsible for the spiritual welfare of the University community.')
+            ]
+        ];
+
+        foreach ($management as $person) {
+            WebsitePersonnel::updateOrCreate(
+                ['slug' => $person['slug']],
+                array_merge($person, ['is_active' => ActiveStatus::ACTIVE])
+            );
+        }
+    }
+
+    private function seedNews(): void
+    {
+        $news = [
+            [
+                'heading' => 'Veritas University Wins National Debate Championship',
+                'subheading' => 'Our students have done it again!',
+                'slug' => 'debate-championship-win',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492224/MTG-4553_tuouqt.jpg',
+                'overview' => $this->createRichText('Veritas University debate team has emerged victorious at the National Universities Debate Championship held in Lagos.'),
+                'content' => $this->createRichText('The Veritas University debate team has once again demonstrated academic excellence by winning the National Universities Debate Championship. The team, comprising students from various departments, defeated 20 other universities to clinch the trophy. The Vice Chancellor, Prof. Hyacinth Ichoku, congratulated the team and commended their hard work and dedication.'),
+                'author' => 'Media Team',
+                'published_at' => now(),
+                'average_time_to_read' => '5 min read'
+            ],
+            [
+                'heading' => 'Admissions Open for 2025/2026 Academic Session',
+                'subheading' => 'Apply now for Undergraduate and Postgraduate programs',
+                'slug' => 'admissions-open-2025',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745491827/Vuna-1971.jpg-_k99bco.jpg',
+                'overview' => $this->createRichText('Applications are now invited from suitably qualified candidates for admission into Veritas University for the 2025/2026 academic session.'),
+                'content' => $this->createRichText('Veritas University, Abuja, has commenced the sale of application forms for the 2025/2026 academic session. Interested candidates can apply for various Undergraduate and Postgraduate programs. The University offers a serene learning environment, modern facilities, and a commitment to moral and academic excellence. Visit the admissions portal to apply.'),
+                'author' => 'Admissions Unit',
+                'published_at' => now()->subDays(2),
+                'average_time_to_read' => '3 min read'
+            ],
+             [
+                'heading' => 'Convocation Ceremony Set for November',
+                'subheading' => 'Celebrating our graduating students',
+                'slug' => 'convocation-ceremony-2025',
+                'image_url' => 'https://res.cloudinary.com/dbhjueg2l/image/upload/v1745492279/MTG-4591_e2a3hv.jpg',
+                'overview' => $this->createRichText('Veritas University is set to hold its 14th Convocation Ceremony this November to celebrate the achievements of its graduating students.'),
+                'content' => $this->createRichText('The Vice Chancellor has announced that the 14th Convocation Ceremony of Veritas University will take place in November 2025. The event will feature the award of degrees, presentation of prizes, and the investiture of the new Chancellor. Parents, guardians, and the general public are invited to join in the celebration.'),
+                'author' => 'Registry',
+                'published_at' => now()->subDays(5),
+                'average_time_to_read' => '4 min read'
+            ]
+        ];
+
+        foreach ($news as $item) {
+            WebsiteNews::updateOrCreate(
+                ['slug' => $item['slug']],
+                array_merge($item, ['is_active' => ActiveStatus::ACTIVE])
+            );
         }
     }
 }

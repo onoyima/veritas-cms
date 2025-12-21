@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class WebsitePersonnel extends Model
 {
+    protected $table = 'website_personnel';
     protected $guarded = ['id'];
 
     protected $casts = [

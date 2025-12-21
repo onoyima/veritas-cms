@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('website_personnel', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name'); // Maps to fullName
+            $table->string('title')->nullable(); // e.g. Prof., Dr.
             $table->string('slug')->unique();
             $table->string('image_url')->nullable();
             $table->string('position')->nullable();
