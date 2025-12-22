@@ -1,12 +1,12 @@
 @extends('errors.layout')
 
-@section('title', 'Page Not Found')
-@section('code', '404')
-@section('message', 'Page Not Found')
-@section('description', 'The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.')
+@section('title', 'Forbidden')
+@section('code', '403')
+@section('message', 'Access Forbidden')
+@section('description', 'Sorry, you do not have permission to access this area. If you believe this is a mistake, please contact your administrator.')
 
 @section('icon')
-    <i class="fa-solid fa-map-location-dot text-3xl text-brand-green"></i>
+    <i class="fa-solid fa-ban text-3xl text-red-500"></i>
 @endsection
 
 @section('actions')
