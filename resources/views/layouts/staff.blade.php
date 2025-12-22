@@ -38,6 +38,7 @@
             left: 0;
             z-index: 1040;
             overflow-y: auto; /* Sidebar scrolls internally */
+            background: radial-gradient(circle at center, #114629 0%, #092c19 100%); /* Applied directly to wrapper */
         }
 
         #page-content-wrapper {
