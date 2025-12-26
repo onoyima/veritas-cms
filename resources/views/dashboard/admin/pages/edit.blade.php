@@ -37,6 +37,49 @@
                     <textarea name="meta_description" id="meta_description" rows="3" class="form-control">{{ old('meta_description', $page->meta_description) }}</textarea>
                 </div>
 
+                <hr class="my-4">
+                <div class="mb-3">
+                    <label for="content" class="form-label fw-semibold">Intro Content</label>
+                    @php
+                        $content = $page->content ?? [];
+                        if (is_string($content)) { $content = json_decode($content, true) ?? []; }
+                        // Extract plain text from rich-text for easy editing
+                        $contentText = '';
+                        if (is_array($content) && isset($content['content'])) {
+                            foreach ($content['content'] as $node) {
+                                if (($node['nodeType'] ?? '') === 'paragraph') {
+                                    foreach ($node['content'] ?? [] as $inner) {
+                                        if (($inner['nodeType'] ?? '') === 'text') {
+                                            $contentText .= ($inner['value'] ?? '') . "\n\n";
+                                        }
+                                    }
+                                }
+                            }
+                            $contentText = trim($contentText);
+                        }
+                    @endphp
+                    <textarea name="content" id="content" rows="5" class="form-control" placeholder="Write the page introduction. Use new lines to separate paragraphs.">{{ old('content', $contentText) }}</textarea>
+                    <small class="text-muted">This becomes the page intro on the frontend. It supports paragraphs.</small>
+                </div>
+                <div class="mb-3">
+                    <label for="image_url" class="form-label fw-semibold">Hero Image URL</label>
+                    <input type="text" name="image_url" id="image_url" class="form-control" value="{{ old('image_url', $page->image_url) }}" placeholder="https://...">
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small mt-2">Or Upload File</label>
+                            <input type="file" name="image" id="image" class="form-control">
+                        </div>
+                        <div class="col-md-6 text-center">
+                            @if($page->image_url)
+                                <img src="{{ $page->image_url }}" alt="Current Image" class="img-fluid rounded border" style="max-height: 120px;">
+                                <div class="small text-muted mt-1 text-truncate">{{ $page->image_url }}</div>
+                            @else
+                                <span class="text-muted fst-italic">No hero image set</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="status" class="form-label fw-semibold">Status</label>

@@ -1,4 +1,26 @@
 @php
+    if (!function_exists('flatten_rich_text')) {
+        function flatten_rich_text($val): string {
+            if (is_string($val)) return $val;
+            if (!is_array($val)) return '';
+            $texts = [];
+            $stack = [$val];
+            while ($stack) {
+                $node = array_pop($stack);
+                if (is_array($node)) {
+                    if (isset($node['nodeType']) && $node['nodeType'] === 'text' && isset($node['value'])) {
+                        $texts[] = $node['value'];
+                    }
+                    if (isset($node['content']) && is_array($node['content'])) {
+                        foreach ($node['content'] as $child) {
+                            $stack[] = $child;
+                        }
+                    }
+                }
+            }
+            return trim(implode("\n\n", $texts));
+        }
+    }
     $identifier = $identifier ?? null;
     // Detect type of array
     $isSimpleArray = !empty($value) && !is_array(array_values($value)[0] ?? null);
@@ -12,6 +34,10 @@
     }
 
     $sampleItem = $isSimpleArray ? '' : ($value[0] ?? []);
+    if ($key === 'content5' && $identifier === 'about-page-third-section') {
+        $isSimpleArray = false;
+        $sampleItem = ['title' => '', 'description' => ''];
+    }
     
     // If empty object array, try to infer keys from key name or use a generic 'value' key if we can't guess
     if (!$isSimpleArray && empty($sampleItem)) {
@@ -56,6 +82,8 @@
                     $required = ['id', 'title', 'imgSrc', 'href'];
                     break;
             }
+        } elseif ($key === 'content5' && $identifier === 'about-page-third-section') {
+            $required = ['title', 'description'];
         } elseif ($key === 'quick_links') {
             $required = ['title', 'href'];
         } elseif ($key === 'stats') {
@@ -85,7 +113,7 @@
                 <div class="row g-2">
                     @if($isSimpleArray)
                         <div class="col-12">
-                            <input type="text" name="content[{{ $key }}][{{ $index }}]" value="{{ is_array($item) ? json_encode($item) : $item }}" class="form-control form-control-sm" placeholder="Value">
+                            <input type="text" name="content[{{ $key }}][{{ $index }}]" value="{{ flatten_rich_text(is_array($item) ? '' : $item) }}" class="form-control form-control-sm" placeholder="Value">
                         </div>
                     @else
                         @foreach($keys as $field)
@@ -93,12 +121,25 @@
                                 <label class="form-label small text-muted text-capitalize mb-0" style="font-size: 0.7rem;">{{ str_replace('_', ' ', $field) }}</label>
                                 @if(str_contains($field, 'image') || str_contains($field, 'img') || str_contains($field, 'src'))
                                     <div class="mb-1">
-                                        <input type="text" name="content[{{ $key }}][{{ $index }}][{{ $field }}]" value="{{ is_array($item[$field] ?? '') ? json_encode($item[$field] ?? '') : ($item[$field] ?? '') }}" class="form-control form-control-sm mb-1" placeholder="Image URL">
+                                        <input type="text" name="content[{{ $key }}][{{ $index }}][{{ $field }}]" value="{{ is_array($item[$field] ?? '') ? '' : ($item[$field] ?? '') }}" class="form-control form-control-sm mb-1" placeholder="Image URL">
                                         <input type="file" name="files[{{ $key }}][{{ $index }}][{{ $field }}]" class="form-control form-control-sm">
                                         <small class="text-muted" style="font-size: 0.65rem;">Upload new file to replace URL</small>
                                     </div>
                                 @else
-                                    <input type="text" name="content[{{ $key }}][{{ $index }}][{{ $field }}]" value="{{ is_array($item[$field] ?? '') ? json_encode($item[$field] ?? '') : ($item[$field] ?? '') }}" class="form-control form-control-sm">
+                                    @php
+                                        $val = '';
+                                        if (is_array($item)) {
+                                            $val = flatten_rich_text($item[$field] ?? '');
+                                        } else {
+                                            // Handle legacy simple strings for object schema (e.g., Core Values as strings)
+                                            if ($field === 'title' && is_string($item)) {
+                                                $val = flatten_rich_text($item);
+                                            } else {
+                                                $val = '';
+                                            }
+                                        }
+                                    @endphp
+                                    <input type="text" name="content[{{ $key }}][{{ $index }}][{{ $field }}]" value="{{ $val }}" class="form-control form-control-sm">
                                 @endif
                             </div>
                         @endforeach

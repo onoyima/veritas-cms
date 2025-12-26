@@ -36,6 +36,19 @@
                     <textarea name="meta_description" id="meta_description" rows="3" class="form-control">{{ old('meta_description') }}</textarea>
                 </div>
 
+                <hr class="my-4">
+                <div class="mb-3">
+                    <label for="content" class="form-label fw-semibold">Intro Content</label>
+                    <textarea name="content" id="content" rows="5" class="form-control" placeholder="Write the page introduction. Use new lines to separate paragraphs.">{{ old('content') }}</textarea>
+                    <small class="text-muted">This becomes the page intro on the frontend. It supports paragraphs.</small>
+                </div>
+                <div class="mb-3">
+                    <label for="image_url" class="form-label fw-semibold">Hero Image URL</label>
+                    <input type="text" name="image_url" id="image_url" class="form-control" value="{{ old('image_url') }}" placeholder="https://...">
+                    <label class="form-label fw-semibold small mt-2">Or Upload File</label>
+                    <input type="file" name="image" id="image" class="form-control">
+                </div>
+
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="status" class="form-label fw-semibold">Status</label>

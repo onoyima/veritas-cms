@@ -10,9 +10,11 @@ use App\Enums\PageStatus;
 use App\Enums\ActiveStatus;
 use App\Enums\FeatureStatus;
 use Illuminate\Validation\Rules\Enum;
+use App\Traits\HandlesRichText;
 
 class PageController extends Controller
 {
+    use HandlesRichText;
     /**
      * Display a listing of the resource.
      */
@@ -52,6 +54,9 @@ class PageController extends Controller
             'slug' => 'nullable|string|max:255|unique:website_pages,slug',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
+            'image_url' => 'nullable|string',
             'status' => ['nullable', new Enum(PageStatus::class)],
             'is_active' => ['nullable', new Enum(ActiveStatus::class)],
             'is_featured' => ['nullable', new Enum(FeatureStatus::class)],
@@ -76,6 +81,15 @@ class PageController extends Controller
         
         $validated['created_by'] = auth()->guard('staff')->id();
         
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('uploads/pages', 'public');
+            $validated['image_url'] = '/storage/' . $path;
+        }
+
+        if (isset($validated['content'])) {
+            $validated['content'] = $this->createRichText($validated['content']);
+        }
+
         // Handle publishing timestamp
         if ($validated['status'] === PageStatus::PUBLISHED->value) {
             $validated['published_at'] = now();
@@ -119,6 +133,9 @@ class PageController extends Controller
             'slug' => 'nullable|string|max:255|unique:website_pages,slug,' . $id,
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
+            'image_url' => 'nullable|string',
             'status' => ['nullable', new Enum(PageStatus::class)],
             'is_active' => ['nullable', new Enum(ActiveStatus::class)],
             'is_featured' => ['nullable', new Enum(FeatureStatus::class)],
@@ -143,6 +160,15 @@ class PageController extends Controller
                     $validated['status'] = PageStatus::PENDING->value;
                 }
             }
+        }
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('uploads/pages', 'public');
+            $validated['image_url'] = '/storage/' . $path;
+        }
+
+        if (isset($validated['content'])) {
+            $validated['content'] = $this->createRichText($validated['content']);
         }
 
         $page->update($validated);

@@ -57,6 +57,10 @@ class ContentBlockController extends Controller
             }
         }
 
+        $content = $this->convertMultilineToDocument($content, $validated['identifier'] ?? null);
+        $content = $this->normalizeAdmissionsList($content, $validated['identifier'] ?? null);
+        $content = $this->applyAdmissionsSection2ListOverride($content, $validated['identifier'] ?? null);
+
         $validated['content'] = $content;
         $validated['page_id'] = $page->id;
         $validated['is_active'] = $request->has('is_active') ? ActiveStatus::ACTIVE : ActiveStatus::INACTIVE;
@@ -132,7 +136,35 @@ class ContentBlockController extends Controller
 
         $finalContent = $newContent;
 
+        $finalContent = $this->convertMultilineToDocument($finalContent, $validated['identifier'] ?? $block->identifier);
+        $finalContent = $this->normalizeAdmissionsList($finalContent, $validated['identifier'] ?? $block->identifier);
+        $finalContent = $this->applyAdmissionsSection2ListOverride($finalContent, $validated['identifier'] ?? $block->identifier);
+
         try {
+            // Basic required field validation by identifier to aid non-technical admins
+            $identifier = $validated['identifier'] ?? $block->identifier;
+            $requiredByIdentifier = [
+                'about-page-first-section' => ['heading1', 'content1'],
+                'about-page-second-section' => ['heading1', 'content1'],
+                'about-page-third-section' => ['heading1', 'content1'],
+                'about-page-fourth-section' => ['heading1', 'content1', 'buttonText', 'buttonLink'],
+                'home-page-seventh-section' => ['subheading'],
+            ];
+            if ($identifier && isset($requiredByIdentifier[$identifier])) {
+                $missing = [];
+                foreach ($requiredByIdentifier[$identifier] as $key) {
+                    $val = $finalContent[$key] ?? null;
+                    if ($val === null || (is_string($val) && trim($val) === '')) {
+                        $missing[] = $key;
+                    }
+                }
+                if (!empty($missing)) {
+                    return back()->withErrors([
+                        'content' => 'Missing required fields: ' . implode(', ', $missing),
+                    ])->withInput();
+                }
+            }
+
             // Update other fields
             $block->type = $validated['type'];
             $block->identifier = $validated['identifier'];
@@ -211,6 +243,184 @@ class ContentBlockController extends Controller
                 $path = $value->store('uploads/blocks', 'public');
                 $content[$key] = '/storage/' . $path;
             }
+        }
+        return $content;
+    }
+
+    private function convertMultilineToDocument(array $content, ?string $identifier): array
+    {
+        $keys = [];
+        switch ($identifier) {
+            case 'about-page-first-section':
+                $keys = ['content1', 'content2'];
+                break;
+            case 'about-page-second-section':
+                $keys = ['content1', 'content2', 'content3', 'content4', 'content5'];
+                break;
+            case 'about-page-third-section':
+                $keys = ['content1', 'content2', 'content3', 'content4', 'content5_description'];
+                break;
+            case 'about-page-fourth-section':
+                $keys = ['content1', 'content2'];
+                break;
+            case 'university-management-page-first-section':
+                $keys = ['content1'];
+                break;
+            default:
+                if ($identifier && str_starts_with($identifier, 'admission-')) {
+                    $keys = ['content1', 'content2', 'content3', 'content4', 'content5', 'content6', 'content7', 'content8'];
+                }
+                break;
+        }
+        foreach ($keys as $k) {
+            $v = $content[$k] ?? null;
+            if (is_string($v) && strpos($v, "\n") !== false) {
+                $text = trim($v);
+                $lines = preg_split("/\\r?\\n/", $text);
+                $hasBullets = false;
+                $hasNumbers = false;
+                foreach ($lines as $ln) {
+                    $t = ltrim($ln);
+                    if (str_starts_with($t, '- ') || str_starts_with($t, '* ')) $hasBullets = true;
+                    if (preg_match('/^\\d+\\.\\s+/', $t)) $hasNumbers = true;
+                }
+                $doc = ['nodeType' => 'document', 'data' => [], 'content' => []];
+                if ($identifier && str_starts_with($identifier, 'admission-') && $k === 'content2' && ($hasBullets || $hasNumbers)) {
+                    $listItems = [];
+                    foreach ($lines as $ln) {
+                        $t = ltrim($ln);
+                        if ($hasBullets && (str_starts_with($t, '- ') || str_starts_with($t, '* '))) {
+                            $val = trim(substr($t, 2));
+                            if ($val !== '') {
+                                $listItems[] = [
+                                    'nodeType' => 'list-item',
+                                    'data' => [],
+                                    'content' => [[
+                                        'nodeType' => 'paragraph',
+                                        'data' => [],
+                                        'content' => [[
+                                            'nodeType' => 'text',
+                                            'value' => $val,
+                                            'marks' => [],
+                                            'data' => [],
+                                        ]],
+                                    ]],
+                                ];
+                            }
+                        } elseif ($hasNumbers && preg_match('/^(\\d+)\\.\\s+(.*)$/', $t, $m)) {
+                            $val = trim($m[2] ?? '');
+                            if ($val !== '') {
+                                $listItems[] = [
+                                    'nodeType' => 'list-item',
+                                    'data' => [],
+                                    'content' => [[
+                                        'nodeType' => 'paragraph',
+                                        'data' => [],
+                                        'content' => [[
+                                            'nodeType' => 'text',
+                                            'value' => $val,
+                                            'marks' => [],
+                                            'data' => [],
+                                        ]],
+                                    ]],
+                                ];
+                            }
+                        }
+                    }
+                    if (!empty($listItems)) {
+                        $doc['content'][] = [
+                            'nodeType' => $hasNumbers ? 'ordered-list' : 'unordered-list',
+                            'data' => [],
+                            'content' => $listItems,
+                        ];
+                        $content[$k] = $doc;
+                        continue;
+                    }
+                }
+                $parts = preg_split("/\\r?\\n\\r?\\n/", $text);
+                foreach ($parts as $p) {
+                    $p = trim($p);
+                    if ($p === '') continue;
+                    $doc['content'][] = [
+                        'nodeType' => 'paragraph',
+                        'data' => [],
+                        'content' => [[
+                            'nodeType' => 'text',
+                            'value' => $p,
+                            'marks' => [],
+                            'data' => [],
+                        ]],
+                    ];
+                }
+                if (!empty($doc['content'])) {
+                    $content[$k] = $doc;
+                }
+            }
+        }
+        return $content;
+    }
+
+    private function normalizeAdmissionsList(array $content, ?string $identifier): array
+    {
+        if (!$identifier) return $content;
+        if (!str_starts_with($identifier, 'admission-')) return $content;
+        if (!isset($content['list']) || !is_array($content['list'])) return $content;
+
+        $normalized = [];
+        foreach ($content['list'] as $item) {
+            if (is_array($item)) {
+                $name = trim((string)($item['name'] ?? ''));
+                $phone = trim((string)($item['phone'] ?? ''));
+                $email = trim((string)($item['email'] ?? ''));
+                $normalized[] = implode(' === ', [$name, $phone, $email]);
+            } elseif (is_string($item)) {
+                $normalized[] = $item;
+            }
+        }
+        $content['list'] = $normalized;
+        return $content;
+    }
+
+    /**
+     * Build content2 document from explicit list controls in admissions blocks
+     */
+    private function applyAdmissionsSection2ListOverride(array $content, ?string $identifier): array
+    {
+        if (!$identifier || !str_starts_with($identifier, 'admission-')) return $content;
+        $type = trim((string)($content['content2_list_type'] ?? ''));
+        $items = $content['content2_list_items'] ?? [];
+        if ($type === '' || !is_array($items) || empty($items)) return $content;
+
+        $listItems = [];
+        foreach ($items as $itm) {
+            $val = is_string($itm) ? trim($itm) : '';
+            if ($val === '') continue;
+            $listItems[] = [
+                'nodeType' => 'list-item',
+                'data' => [],
+                'content' => [[
+                    'nodeType' => 'paragraph',
+                    'data' => [],
+                    'content' => [[
+                        'nodeType' => 'text',
+                        'value' => $val,
+                        'marks' => [],
+                        'data' => [],
+                    ]],
+                ]],
+            ];
+        }
+        if (!empty($listItems)) {
+            $doc = [
+                'nodeType' => 'document',
+                'data' => [],
+                'content' => [[
+                    'nodeType' => $type === 'numbered' ? 'ordered-list' : 'unordered-list',
+                    'data' => [],
+                    'content' => $listItems,
+                ]],
+            ];
+            $content['content2'] = $doc;
         }
         return $content;
     }
