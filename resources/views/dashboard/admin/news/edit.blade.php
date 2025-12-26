@@ -52,8 +52,9 @@
                                 <div class="mb-3">
                                     <label for="status" class="form-label small text-muted">Status</label>
                                     <select name="is_active" id="status" class="form-select">
-                                        <option value="active" {{ old('is_active', $news->is_active->value ?? '') == 'active' ? 'selected' : '' }}>Active</option>
-                                        <option value="inactive" {{ old('is_active', $news->is_active->value ?? '') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                        @foreach(\App\Enums\ActiveStatus::options() as $value => $label)
+                                            <option value="{{ $value }}" {{ old('is_active', $news->is_active->value ?? \App\Enums\ActiveStatus::INACTIVE->value) == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
@@ -84,8 +85,11 @@
                                     </div>
                                 @endif
 
+                                <label class="form-label small text-muted">Image URL</label>
+                                <input type="text" name="image_url" id="image_url" class="form-control mb-2" value="{{ old('image_url', $news->image_url) }}" placeholder="https://...">
+                                <label class="form-label small text-muted mt-2">Or Upload File</label>
                                 <input type="file" name="image" id="image" class="form-control mb-2" accept="image/*">
-                                <div class="form-text small">Upload to replace current image.</div>
+                                <div class="form-text small">Provide a direct URL or upload. Upload overrides URL.</div>
                             </div>
                         </div>
                     </div>

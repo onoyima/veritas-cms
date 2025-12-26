@@ -18,6 +18,7 @@ class WebsiteProgram extends Model
         'financial_aid' => 'array',
         'research_facilities' => 'array',
         'transfer_candidates' => 'array',
+        'completion_requirements' => 'array',
     ];
 
     public function course(): BelongsTo

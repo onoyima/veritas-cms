@@ -14,10 +14,21 @@ class NewsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $news = WebsiteNews::orderBy('created_at', 'desc')->paginate(10);
-        return view('dashboard.admin.news.index', compact('news'));
+        $search = $request->query('search');
+        $news = WebsiteNews::orderBy('created_at', 'desc')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('heading', 'like', '%' . $search . '%')
+                        ->orWhere('subheading', 'like', '%' . $search . '%')
+                        ->orWhere('author', 'like', '%' . $search . '%')
+                        ->orWhere('slug', 'like', '%' . $search . '%');
+                });
+            })
+            ->paginate(10)
+            ->appends($request->query());
+        return view('dashboard.admin.news.index', compact('news', 'search'));
     }
 
     /**

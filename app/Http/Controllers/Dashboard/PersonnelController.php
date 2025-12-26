@@ -14,10 +14,21 @@ class PersonnelController extends Controller
 {
     use HandlesRichText;
 
-    public function index()
+    public function index(Request $request)
     {
-        $personnel = WebsitePersonnel::orderBy('created_at', 'desc')->paginate(10);
-        return view('dashboard.admin.personnel.index', compact('personnel'));
+        $search = $request->query('search');
+        $personnel = WebsitePersonnel::orderBy('created_at', 'desc')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('title', 'like', '%' . $search . '%')
+                        ->orWhere('position', 'like', '%' . $search . '%')
+                        ->orWhere('slug', 'like', '%' . $search . '%');
+                });
+            })
+            ->paginate(10)
+            ->appends($request->query());
+        return view('dashboard.admin.personnel.index', compact('personnel', 'search'));
     }
 
     public function create()

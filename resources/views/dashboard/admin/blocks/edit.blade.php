@@ -41,6 +41,67 @@
                         if (is_string($content)) {
                             $content = json_decode($content, true) ?? [];
                         }
+                        // Ensure required keys exist for known identifiers
+                        switch ($block->identifier) {
+                            case 'home-discover':
+                                $content['heading'] = $content['heading'] ?? '';
+                                $content['subheading'] = $content['subheading'] ?? '';
+                                $content['items'] = is_array($content['items'] ?? null) ? $content['items'] : [];
+                                break;
+                            case 'home-services':
+                                $content['heading'] = $content['heading'] ?? '';
+                                $content['subheading'] = $content['subheading'] ?? '';
+                                $content['items'] = is_array($content['items'] ?? null) ? $content['items'] : [];
+                                break;
+                            case 'home-admissions':
+                                $content['heading'] = $content['heading'] ?? '';
+                                $content['subheading'] = $content['subheading'] ?? '';
+                                $content['apply_link'] = $content['apply_link'] ?? '';
+                                $content['items'] = is_array($content['items'] ?? null) ? $content['items'] : [];
+                                break;
+                            case 'home-page-first-section':
+                                $content['heading1'] = $content['heading1'] ?? '';
+                                $content['content1'] = $content['content1'] ?? '';
+                                $content['list'] = is_array($content['list'] ?? null) ? $content['list'] : [];
+                                $content['stats'] = is_array($content['stats'] ?? null) ? $content['stats'] : [];
+                                $content['quick_links'] = is_array($content['quick_links'] ?? null) ? $content['quick_links'] : [];
+                                break;
+                            case 'home-page-third-section':
+                                $content['heading1'] = $content['heading1'] ?? '';
+                                $content['content1'] = $content['content1'] ?? '';
+                                $content['imageUrl1'] = $content['imageUrl1'] ?? '';
+                                $content['heading2'] = $content['heading2'] ?? '';
+                                $content['content2'] = $content['content2'] ?? '';
+                                $content['heading3'] = $content['heading3'] ?? '';
+                                $content['content3'] = $content['content3'] ?? '';
+                                $content['heading4'] = $content['heading4'] ?? '';
+                                $content['content4'] = $content['content4'] ?? '';
+                                break;
+                            case 'home-page-seventh-section':
+                                $content['heading'] = $content['heading'] ?? '';
+                                $content['subheading'] = $content['subheading'] ?? '';
+                                $content['imageUrl1'] = $content['imageUrl1'] ?? '';
+                                $content['heading1'] = $content['heading1'] ?? '';
+                                $content['content1'] = $content['content1'] ?? '';
+                                $content['heading2'] = $content['heading2'] ?? '';
+                                $content['content2'] = $content['content2'] ?? '';
+                                $content['heading3'] = $content['heading3'] ?? '';
+                                $content['content3'] = $content['content3'] ?? '';
+                                $content['heading4'] = $content['heading4'] ?? '';
+                                $content['content4'] = $content['content4'] ?? '';
+                                $content['heading5'] = $content['heading5'] ?? '';
+                                $content['content5'] = $content['content5'] ?? '';
+                                $content['heading6'] = $content['heading6'] ?? '';
+                                $content['content6'] = $content['content6'] ?? '';
+                                break;
+                            case 'home-map':
+                                $content['iframe_url'] = $content['iframe_url'] ?? '';
+                                $content['address'] = $content['address'] ?? '';
+                                $content['email'] = $content['email'] ?? '';
+                                $content['phone_link'] = $content['phone_link'] ?? '';
+                                $content['phone'] = $content['phone'] ?? '';
+                                break;
+                        }
                     @endphp
 
                     @forelse($content as $key => $value)
@@ -48,12 +109,17 @@
                         <div class="mb-3 p-3 border rounded bg-light">
                             <label class="form-label fw-bold text-capitalize">{{ str_replace('_', ' ', $key) }} <small class="text-muted fw-normal">({{ $key }})</small></label>
 
-                            @if(Str::contains(strtolower($key), ['image', 'img', 'photo', 'banner', 'logo']))
-                                {{-- Image Field --}}
+                            @if(is_array($value))
+                                {{-- Repeater Field --}}
+                                @include('dashboard.admin.blocks.partials.repeater', ['key' => $key, 'value' => $value, 'identifier' => $block->identifier])
+                            @elseif(Str::contains(strtolower($key), ['image', 'img', 'photo', 'banner', 'logo']))
+                                {{-- Image Field (URL + File Upload) --}}
                                 <div class="row align-items-center">
                                     <div class="col-md-8">
+                                        <label class="form-label fw-semibold small">Image URL</label>
+                                        <input type="text" name="content[{{ $key }}]" value="{{ is_array($value) ? json_encode($value) : ($value ?? '') }}" class="form-control mb-2" placeholder="https://...">
+                                        <label class="form-label fw-semibold small mt-2">Or Upload File</label>
                                         <input type="file" name="images[{{ $key }}]" class="form-control mb-2">
-                                        <input type="hidden" name="content[{{ $key }}]" value="{{ $value }}">
 
                                         {{-- Alt Text and Caption --}}
                                         <div class="row mt-2">
@@ -67,21 +133,17 @@
                                             </div>
                                         </div>
 
-                                        <small class="text-muted d-block mt-2">Upload to replace current image.</small>
+                                        <small class="text-muted d-block mt-2">Provide a direct URL or upload a file. Upload will override URL.</small>
                                     </div>
                                     <div class="col-md-4 text-center">
                                         @if($value)
-                                            <img src="{{ $value }}" alt="{{ $content[$key . '_alt'] ?? $key }}" class="img-fluid rounded border" style="max-height: 100px;">
-                                            <div class="small text-muted mt-1 text-truncate">{{ $value }}</div>
+                                            <img src="{{ is_array($value) ? '' : $value }}" alt="{{ $content[$key . '_alt'] ?? $key }}" class="img-fluid rounded border" style="max-height: 100px;">
+                                            <div class="small text-muted mt-1 text-truncate">{{ is_array($value) ? '' : $value }}</div>
                                         @else
                                             <span class="text-muted fst-italic">No image set</span>
                                         @endif
                                     </div>
                                 </div>
-                            @elseif(is_array($value))
-                                {{-- Nested Array - Show as JSON for now --}}
-                                <textarea name="content[{{ $key }}]" class="form-control font-monospace" rows="3">{{ json_encode($value) }}</textarea>
-                                <small class="text-muted">Complex structure (JSON)</small>
                             @elseif(Str::length($value) > 100 || Str::contains(strtolower($key), ['desc', 'content', 'overview', 'text']))
                                 {{-- Long Text --}}
                                 <textarea name="content[{{ $key }}]" class="form-control" rows="4">{{ $value }}</textarea>
@@ -133,4 +195,80 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Row
+        document.body.addEventListener('click', function(e) {
+            if (e.target.closest('.add-row-btn')) {
+                const btn = e.target.closest('.add-row-btn');
+                const container = btn.closest('.repeater-container');
+                const itemsContainer = container.querySelector('.repeater-items');
+                const key = container.dataset.key;
+                const schema = container.dataset.schema;
+                const keys = JSON.parse(container.dataset.keys);
+                const index = new Date().getTime(); // Unique index
+
+                let html = `
+                    <div class="repeater-item card mb-2 p-2 bg-white border shadow-sm">
+                        <div class="d-flex justify-content-end mb-1">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-row-btn" style="padding: 0px 5px; font-size: 0.7rem;" title="Remove Item">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="row g-2">
+                `;
+
+                if (schema === 'simple') {
+                    html += `
+                        <div class="col-12">
+                            <input type="text" name="content[${key}][${index}]" class="form-control form-control-sm" placeholder="Value">
+                        </div>
+                    `;
+                } else {
+                    keys.forEach(field => {
+                        let label = field.replace(/_/g, ' ');
+                        // Capitalize
+                        label = label.replace(/\b\w/g, l => l.toUpperCase());
+                        
+                        let input = '';
+                         if(field.includes('image') || field.includes('img') || field.includes('src')) {
+                             input = `
+                                 <div class="mb-1">
+                                    <input type="text" name="content[${key}][${index}][${field}]" class="form-control form-control-sm mb-1" placeholder="Image URL">
+                                    <input type="file" name="files[${key}][${index}][${field}]" class="form-control form-control-sm">
+                                    <small class="text-muted" style="font-size: 0.65rem;">Upload new file to replace URL</small>
+                                 </div>
+                             `;
+                         } else {
+                             input = `<input type="text" name="content[${key}][${index}][${field}]" class="form-control form-control-sm">`;
+                         }
+
+                        html += `
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted text-capitalize mb-0" style="font-size: 0.7rem;">${label}</label>
+                                ${input}
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div></div>`;
+                
+                // Remove empty message if exists
+                const emptyMsg = itemsContainer.querySelector('.empty-message');
+                if(emptyMsg) emptyMsg.remove();
+
+                itemsContainer.insertAdjacentHTML('beforeend', html);
+            }
+
+            // Remove Row
+            if (e.target.closest('.remove-row-btn')) {
+                const btn = e.target.closest('.remove-row-btn');
+                const item = btn.closest('.repeater-item');
+                item.remove();
+            }
+        });
+    });
+</script>
 @endsection

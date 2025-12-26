@@ -9,6 +9,7 @@ use App\Enums\ActiveStatus;
 class ContentBlock extends Model
 {
     use HasFactory;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $table = 'website_content_blocks';
 
@@ -19,6 +20,7 @@ class ContentBlock extends Model
         'content',
         'order',
         'is_active',
+        'deleted_at',
     ];
 
     protected $casts = [

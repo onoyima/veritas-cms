@@ -12,10 +12,22 @@ use Carbon\Carbon;
 
 class EventsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $events = WebsiteEvent::orderBy('start_date_and_time', 'desc')->paginate(10);
-        return view('dashboard.admin.events.index', compact('events'));
+        $search = $request->query('search');
+        $events = WebsiteEvent::orderBy('start_date_and_time', 'desc')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('heading', 'like', '%' . $search . '%')
+                        ->orWhere('subheading', 'like', '%' . $search . '%')
+                        ->orWhere('location', 'like', '%' . $search . '%')
+                        ->orWhere('event_type', 'like', '%' . $search . '%')
+                        ->orWhere('slug', 'like', '%' . $search . '%');
+                });
+            })
+            ->paginate(10)
+            ->appends($request->query());
+        return view('dashboard.admin.events.index', compact('events', 'search'));
     }
 
     public function create()

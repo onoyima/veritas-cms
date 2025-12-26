@@ -99,9 +99,63 @@
                 cursor: pointer;
             }
         }
+
+        /* Loading Spinner */
+        #cms-global-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .cms-spinner-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cms-spinner-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid rgba(0, 79, 64, 0.3); /* #004F40 with opacity */
+            border-top-color: #004F40;
+            animation: cms-spin 1s linear infinite;
+        }
+
+        .cms-spinner-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        @keyframes cms-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 <body class="bg-light">
+    <!-- Global Loader -->
+    <div id="cms-global-loader">
+        <div class="cms-spinner-container">
+            <div class="cms-spinner-ring"></div>
+            <img src="{{ asset('favicon.ico') }}" alt="Loading..." class="cms-spinner-icon">
+        </div>
+    </div>
     <div class="d-flex" id="wrapper">
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
@@ -116,6 +170,31 @@
             <!-- Main Content Scrollable Area -->
             <div id="main-scroll-container">
                 <main class="flex-grow-1 p-4">
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fa-solid fa-check-circle me-2"></i> {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fa-solid fa-exclamation-circle me-2"></i> {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <ul class="mb-0 ps-3">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
                     @yield('content')
                 </main>
 
@@ -151,6 +230,46 @@
                     if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
                         wrapper.classList.remove('toggled');
                     }
+                }
+            });
+
+            // Global Loader Logic
+            const loader = document.getElementById('cms-global-loader');
+
+            function showLoader() {
+                if (loader) loader.style.display = 'flex';
+            }
+
+            function hideLoader() {
+                if (loader) loader.style.display = 'none';
+            }
+
+            // Show on page unload (navigation)
+            window.addEventListener('beforeunload', function() {
+                showLoader();
+            });
+
+            // Show on form submit
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function() {
+                    // Only show if the form is valid (if browser validation is used)
+                    if (this.checkValidity()) {
+                        showLoader();
+                    }
+                });
+            });
+
+            // Show on specific buttons if needed
+            document.querySelectorAll('.btn-processing').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showLoader();
+                });
+            });
+
+            // Hide loader if page is shown from bfcache (back/forward cache)
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    hideLoader();
                 }
             });
         });

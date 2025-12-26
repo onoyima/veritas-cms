@@ -16,17 +16,22 @@ class PageController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // For Super Admin, show all pages
-        // For Editors, show only pages they created or are assigned to (if we had assignment logic)
-        // For now, we assume Staff with 'editor' role can see all pages but maybe with limited actions
-        
+        $search = $request->query('search');
         $pages = Page::with(['creator', 'approver'])
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('title', 'like', '%' . $search . '%')
+                        ->orWhere('slug', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%');
+                });
+            })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->appends($request->query());
             
-        return view('dashboard.admin.pages.index', compact('pages'));
+        return view('dashboard.admin.pages.index', compact('pages', 'search'));
     }
 
     /**

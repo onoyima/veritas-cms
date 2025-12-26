@@ -26,6 +26,8 @@ class Page extends Model
         'published_at',
         'created_by',
         'approved_by',
+        'content',
+        'image_url',
     ];
 
     protected $casts = [
@@ -33,6 +35,7 @@ class Page extends Model
         'status' => PageStatus::class,
         'is_featured' => FeatureStatus::class,
         'published_at' => 'datetime',
+        'content' => 'array',
     ];
 
     public function blocks()

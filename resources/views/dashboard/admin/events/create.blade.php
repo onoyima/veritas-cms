@@ -61,8 +61,9 @@
                                 <h6 class="fw-bold mb-3">Status</h6>
                                 <div class="mb-3">
                                     <select name="is_active" id="status" class="form-select">
-                                        <option value="active" {{ old('is_active') == 'active' ? 'selected' : '' }}>Active</option>
-                                        <option value="inactive" {{ old('is_active') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                        @foreach(\App\Enums\ActiveStatus::options() as $value => $label)
+                                            <option value="{{ $value }}" {{ old('is_active', \App\Enums\ActiveStatus::ACTIVE->value) == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
@@ -76,8 +77,11 @@
                         <div class="card bg-light border-0">
                             <div class="card-body">
                                 <h6 class="fw-bold mb-3">Event Image</h6>
+                                <label class="form-label small text-muted">Image URL</label>
+                                <input type="text" name="image_url" id="image_url" class="form-control mb-2" value="{{ old('image_url') }}" placeholder="https://...">
+                                <label class="form-label small text-muted mt-2">Or Upload File</label>
                                 <input type="file" name="image" id="image" class="form-control mb-2" accept="image/*">
-                                <div class="form-text small">Upload an image for the event.</div>
+                                <div class="form-text small">Provide a direct URL or upload. Upload overrides URL.</div>
                             </div>
                         </div>
                     </div>

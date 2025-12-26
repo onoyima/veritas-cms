@@ -18,6 +18,20 @@
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
+            <div class="px-4 pt-3 pb-2 border-bottom d-flex gap-2 justify-content-between align-items-center">
+                <form method="GET" action="{{ route('admin.news.index') }}" class="d-flex align-items-center gap-2 w-100" role="search">
+                    <div class="input-group input-group-sm w-auto">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search articles...">
+                    </div>
+                    @if(request('search'))
+                        <a href="{{ route('admin.news.index') }}" class="btn btn-sm btn-light">Clear</a>
+                    @endif
+                </form>
+                <div class="text-muted small d-none d-md-block">
+                    Showing {{ $news->firstItem() ?? 0 }}–{{ $news->lastItem() ?? 0 }} of {{ $news->total() }} results
+                </div>
+            </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
@@ -89,7 +103,10 @@
             </div>
             
             @if($news->hasPages())
-            <div class="px-4 py-3 border-top">
+            <div class="px-4 py-3 border-top d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    Page {{ $news->currentPage() }} of {{ $news->lastPage() }}
+                </div>
                 {{ $news->links() }}
             </div>
             @endif

@@ -35,6 +35,8 @@ class PageContentController extends Controller
                 'id' => $page->id,
                 'title' => $page->title,
                 'slug' => $page->slug,
+                'content' => $page->content,
+                'image_url' => $page->image_url,
                 'meta' => [
                     'title' => $page->meta_title,
                     'description' => $page->meta_description,
